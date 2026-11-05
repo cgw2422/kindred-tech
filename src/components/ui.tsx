@@ -62,7 +62,7 @@ export function Badge({ children, tone = "neutral" }: { children: ReactNode; ton
 
 export function Notice({ children, tone = "navy", title }: { children: ReactNode; tone?: Tone; title?: string }) {
   return (
-    <div role={tone === "danger" ? "alert" : "status"} className={`rounded-md border p-4 ${toneClass[tone]}`}>
+    <div role={tone === "danger" ? "alert" : undefined} className={`rounded-md border p-4 ${toneClass[tone]}`}>
       {title && <p className="mb-1 font-bold">{title}</p>}
       <div>{children}</div>
     </div>

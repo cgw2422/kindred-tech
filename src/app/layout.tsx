@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "Friendly, patient technology help in the comfort of your own home. Computer, smartphone, Wi-Fi, TV, and online safety help for seniors and families in Tuscarawas County, Ohio.",
   applicationName: "Kindred Tech Support",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/icon-192.png" },
   openGraph: { type: "website", siteName: "Kindred Tech Support", locale: "en_US" },
 };
 
