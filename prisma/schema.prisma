@@ -1,0 +1,1213 @@
+// Kindred Tech Support — database schema
+// All monetary values are stored as integer cents (USD).
+// All timestamps are stored in UTC; the business time zone is configured in settings.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [btree_gist]
+}
+
+// ---------------------------------------------------------------------------
+// Identity, auth & access
+// ---------------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  ADMIN
+  DISPATCHER
+  TECHNICIAN
+  CUSTOMER
+  FACILITY_CONTACT
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  phone           String?
+  passwordHash    String?
+  role            Role
+  isActive        Boolean   @default(true)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  failedLogins    Int       @default(0)
+  lockedUntil     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // A CUSTOMER user may be the account holder for one customer record
+  customerId String?   @unique
+  customer   Customer? @relation("CustomerUser", fields: [customerId], references: [id], onDelete: SetNull)
+
+  sessions        Session[]
+  authTokens      AuthToken[]
+  technician      Technician?
+  familyContacts  FamilyContact[]
+  facilityContact FacilityContact[]
+  auditLogs       AuditLog[]
+  statusChanges   AppointmentStatusChange[]
+  consentsRecorded ConsentRecord[]
+  paymentsRecorded Payment[]
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent  String?
+
+  @@index([userId])
+}
+
+enum AuthTokenType {
+  PASSWORD_RESET
+  MAGIC_LINK
+  ACCOUNT_INVITE
+}
+
+model AuthToken {
+  id        String        @id @default(cuid())
+  tokenHash String        @unique
+  type      AuthTokenType
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  actor       User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  action      String
+  entityType  String
+  entityId    String?
+  // Never store secrets or sensitive personal details in metadata
+  metadata    Json?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model Counter {
+  name  String @id
+  value Int    @default(0)
+}
+
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Customers / CRM
+// ---------------------------------------------------------------------------
+
+enum ContactPreference {
+  EMAIL
+  PHONE
+  TEXT
+  MAIL
+}
+
+enum CustomerStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+}
+
+model Customer {
+  id                 String            @id @default(cuid())
+  firstName          String
+  lastName           String
+  preferredName      String?
+  email              String?
+  phone              String?
+  contactPreference  ContactPreference @default(PHONE)
+  bestTimeToContact  String?
+  status             CustomerStatus    @default(ACTIVE)
+  leadSource         String?
+  internalNotes      String?
+  marketingOptIn     Boolean           @default(false)
+  marketingOptInAt   DateTime?
+  unsubscribeToken   String            @unique @default(cuid())
+  stripeCustomerId   String?           @unique
+  // Residents of a partner facility
+  facilityId         String?
+  facility           Facility?         @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+  facilityUnit       String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  user               User?             @relation("CustomerUser")
+  addresses          Address[]
+  familyContacts     FamilyContact[]
+  devices            Device[]
+  appointments       Appointment[]
+  invoices           Invoice[]
+  payments           Payment[]
+  memberships        Membership[]
+  consents           ConsentRecord[]
+  communications     Communication[]
+  subscriptionReviews SubscriptionReview[]
+  supportRequests    SupportRequest[]
+
+  @@index([lastName, firstName])
+  @@index([email])
+  @@index([phone])
+}
+
+model Address {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label       String?
+  line1       String
+  line2       String?
+  city        String
+  state       String    @default("OH")
+  postalCode  String
+  county      String?
+  lat         Float?
+  lng         Float?
+  geocodedBy  String?
+  isPrimary   Boolean   @default(false)
+  accessNotes String?
+  createdAt   DateTime  @default(now())
+
+  appointments Appointment[]
+}
+
+model FamilyContact {
+  id                    String   @id @default(cuid())
+  customerId            String
+  customer              Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name                  String
+  relationship          String?
+  email                 String?
+  phone                 String?
+  // Permissions granted by the customer. Paying does NOT grant access to private details.
+  canSchedule           Boolean  @default(false)
+  canPay                Boolean  @default(false)
+  canReceiveUpdates     Boolean  @default(false)
+  canViewServiceDetails Boolean  @default(false)
+  isBillingContact      Boolean  @default(false)
+  notes                 String?
+  // Optional portal login for the family member
+  userId                String?
+  user                  User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt             DateTime @default(now())
+
+  invoicesBilled  Invoice[]
+  memberships     Membership[]   @relation("MembershipPurchaser")
+
+  @@index([userId])
+}
+
+model Device {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type       String
+  make       String?
+  model      String?
+  os         String?
+  nickname   String?
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+enum ConsentType {
+  SERVICE_AUTHORIZATION
+  MARKETING_EMAIL
+  SUBSCRIPTION_CHANGES
+  REMOTE_ACCESS
+  FAMILY_INFORMATION_SHARING
+  TERMS_ACCEPTED
+  OTHER
+}
+
+enum ConsentMethod {
+  WEB_FORM
+  VERBAL
+  SIGNATURE
+  EMAIL
+  PAPER
+}
+
+model ConsentRecord {
+  id            String        @id @default(cuid())
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type          ConsentType
+  granted       Boolean
+  method        ConsentMethod
+  grantedByName String?
+  notes         String?
+  appointmentId String?
+  recordedById  String?
+  recordedBy    User?         @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now())
+
+  @@index([customerId])
+}
+
+// ---------------------------------------------------------------------------
+// Service catalog & pricing
+// ---------------------------------------------------------------------------
+
+enum PricingType {
+  FIXED
+  STARTING_AT
+  CUSTOM_QUOTE
+}
+
+model ServiceCategory {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  sortOrder Int       @default(0)
+  services  Service[]
+}
+
+model Service {
+  id                       String       @id @default(cuid())
+  slug                     String       @unique
+  name                     String
+  categoryId               String?
+  category                 ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  shortDescription         String
+  description              String
+  pricingType              PricingType  @default(FIXED)
+  basePriceCents           Int          @default(0)
+  durationMinutes          Int          @default(60)
+  // Optional extension blocks, e.g. "Additional 30 minutes: $40"
+  extensionMinutes         Int?
+  extensionPriceCents      Int?
+  isRemote                 Boolean      @default(false)
+  isActive                 Boolean      @default(true)
+  isBookableOnline         Boolean      @default(true)
+  requiresApproval         Boolean      @default(true)
+  memberDiscountEligible   Boolean      @default(true)
+  sortOrder                Int          @default(0)
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+
+  addons       ServiceAddon[]
+  bundleItems  ServiceBundleItem[]
+  appointments Appointment[]
+  invoiceLines InvoiceLine[]
+  discounts    Discount[]
+}
+
+model ServiceAddon {
+  id              String   @id @default(cuid())
+  serviceId       String?
+  service         Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  priceCents      Int
+  durationMinutes Int      @default(0)
+  isActive        Boolean  @default(true)
+}
+
+model ServiceBundle {
+  id          String              @id @default(cuid())
+  name        String
+  description String?
+  priceCents  Int
+  isActive    Boolean             @default(true)
+  items       ServiceBundleItem[]
+}
+
+model ServiceBundleItem {
+  id        String        @id @default(cuid())
+  bundleId  String
+  bundle    ServiceBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  serviceId String
+  service   Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  quantity  Int           @default(1)
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+model Discount {
+  id          String       @id @default(cuid())
+  code        String?      @unique
+  name        String
+  type        DiscountType
+  // PERCENT: whole percent (e.g. 10); FIXED: cents
+  value       Int
+  serviceId   String?
+  service     Service?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  maxUses     Int?
+  usedCount   Int          @default(0)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+
+  appointments Appointment[]
+}
+
+model ServiceArea {
+  id             String   @id @default(cuid())
+  name           String
+  county         String
+  state          String   @default("OH")
+  postalCodes    String[]
+  communities    String[]
+  travelFeeCents Int      @default(0)
+  isActive       Boolean  @default(true)
+  notes          String?
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Technicians & scheduling
+// ---------------------------------------------------------------------------
+
+model Technician {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName   String
+  color         String   @default("#10375B")
+  isActive      Boolean  @default(true)
+  homeBaseLine  String?
+  homeBaseLat   Float?
+  homeBaseLng   Float?
+  serviceAreaIds String[]
+  createdAt     DateTime @default(now())
+
+  schedules     TechnicianSchedule[]
+  blackouts     Blackout[]
+  appointments  Appointment[]
+  techHelpDays  TechHelpDay[]
+  workOrders    WorkOrder[]
+  routePlans    RoutePlan[]
+}
+
+model TechnicianSchedule {
+  id           String     @id @default(cuid())
+  technicianId String
+  technician   Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  // 0 = Sunday ... 6 = Saturday
+  dayOfWeek    Int
+  // minutes since local midnight (business time zone)
+  startMinute  Int
+  endMinute    Int
+
+  @@index([technicianId, dayOfWeek])
+}
+
+enum BlackoutType {
+  HOLIDAY
+  BLOCKED
+  TIME_OFF
+}
+
+model Blackout {
+  id           String       @id @default(cuid())
+  // null technicianId = applies to the whole business
+  technicianId String?
+  technician   Technician?  @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  type         BlackoutType @default(BLOCKED)
+  startsAt     DateTime
+  endsAt       DateTime
+  reason       String?
+  createdAt    DateTime     @default(now())
+
+  @@index([startsAt, endsAt])
+}
+
+enum AppointmentStatus {
+  REQUESTED
+  CONFIRMED
+  ASSIGNED
+  EN_ROUTE
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum BookingSource {
+  ONLINE
+  PHONE
+  ADMIN
+  FACILITY_DAY
+  PORTAL
+}
+
+model Appointment {
+  id                  String            @id @default(cuid())
+  reference           String            @unique
+  status              AppointmentStatus @default(REQUESTED)
+  source              BookingSource     @default(ONLINE)
+  customerId          String
+  customer            Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  addressId           String?
+  address             Address?          @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  serviceId           String
+  service             Service           @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  technicianId        String?
+  technician          Technician?       @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  facilityId          String?
+  facility            Facility?         @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+  techHelpDayId       String?
+  techHelpDay         TechHelpDay?      @relation(fields: [techHelpDayId], references: [id], onDelete: SetNull)
+  startsAt            DateTime
+  endsAt              DateTime
+  // Calendar block including travel buffers; used for conflict detection
+  blockStartsAt       DateTime
+  blockEndsAt         DateTime
+  isRemote            Boolean           @default(false)
+  // Who made the booking (may be a family member)
+  bookedForSelf       Boolean           @default(true)
+  requesterName       String?
+  requesterEmail      String?
+  requesterPhone      String?
+  requesterRelation   String?
+  problemDescription  String?
+  internalNotes       String?
+  addonIds            String[]
+  extensionBlocks     Int               @default(0)
+  discountId          String?
+  discount            Discount?         @relation(fields: [discountId], references: [id], onDelete: SetNull)
+  estimatedTotalCents Int?
+  estimateBreakdown   Json?
+  leadSource          String?
+  manageTokenHash     String?           @unique
+  confirmedAt         DateTime?
+  canceledAt          DateTime?
+  cancelReason        String?
+  routeOrder          Int?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  statusChanges AppointmentStatusChange[]
+  workOrder     WorkOrder?
+  invoices      Invoice[]
+  membershipUsage MembershipUsage[]
+
+  @@index([technicianId, startsAt])
+  @@index([status, startsAt])
+  @@index([customerId])
+  @@index([techHelpDayId])
+}
+
+model AppointmentStatusChange {
+  id            String             @id @default(cuid())
+  appointmentId String
+  appointment   Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  fromStatus    AppointmentStatus?
+  toStatus      AppointmentStatus
+  changedById   String?
+  changedBy     User?              @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  note          String?
+  createdAt     DateTime           @default(now())
+
+  @@index([appointmentId])
+}
+
+model RoutePlan {
+  id                   String     @id @default(cuid())
+  technicianId         String
+  technician           Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  // Local business date, YYYY-MM-DD
+  date                 String
+  appointmentIds       String[]
+  provider             String
+  isManualOverride     Boolean    @default(false)
+  totalDistanceMeters  Int?
+  totalDurationSeconds Int?
+  legs                 Json?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@unique([technicianId, date])
+}
+
+// ---------------------------------------------------------------------------
+// Work orders (technician field work)
+// ---------------------------------------------------------------------------
+
+enum WorkOrderStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+}
+
+model WorkOrder {
+  id                   String          @id @default(cuid())
+  appointmentId        String          @unique
+  appointment          Appointment     @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  technicianId         String?
+  technician           Technician?     @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  status               WorkOrderStatus @default(OPEN)
+  troubleshootingNotes String?
+  resolutionSummary    String?
+  // [{ label: string, done: boolean }]
+  checklist            Json?
+  signatureDataUrl     String?
+  signedByName         String?
+  signedAt             DateTime?
+  invoiceRequestedAt   DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  timeEntries     WorkTimeEntry[]
+  additionalWork  AdditionalWorkItem[]
+  subscriptionReview SubscriptionReview?
+}
+
+model WorkTimeEntry {
+  id          String    @id @default(cuid())
+  workOrderId String
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  startedAt   DateTime
+  endedAt     DateTime?
+}
+
+model AdditionalWorkItem {
+  id               String    @id @default(cuid())
+  workOrderId      String
+  workOrder        WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  description      String
+  minutes          Int       @default(0)
+  priceCents       Int
+  approvedByName   String
+  approvalMethod   ConsentMethod
+  approvedAt       DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Subscription Review & Savings
+// ---------------------------------------------------------------------------
+
+enum SubscriptionCategory {
+  STREAMING
+  ANTIVIRUS
+  SOFTWARE
+  CLOUD_STORAGE
+  PHONE_APP
+  INTERNET
+  CABLE
+  MOBILE_PHONE
+  OTHER
+}
+
+enum BillingFrequency {
+  MONTHLY
+  ANNUAL
+  QUARTERLY
+  OTHER
+}
+
+enum SubscriptionDecision {
+  UNDECIDED
+  KEEP
+  CANCEL
+  DOWNGRADE
+  SWITCH
+  REVIEW_LATER
+}
+
+model SubscriptionReview {
+  id                     String      @id @default(cuid())
+  customerId             String
+  customer               Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  workOrderId            String?     @unique
+  workOrder              WorkOrder?  @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  authorizationConfirmed Boolean     @default(false)
+  authorizedByName       String?
+  authorizedAt           DateTime?
+  notes                  String?
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+
+  items SubscriptionItem[]
+}
+
+model SubscriptionItem {
+  id                          String               @id @default(cuid())
+  reviewId                    String
+  review                      SubscriptionReview   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  name                        String
+  category                    SubscriptionCategory
+  priceCents                  Int
+  frequency                   BillingFrequency
+  decision                    SubscriptionDecision @default(UNDECIDED)
+  cancellationAssisted        Boolean              @default(false)
+  estimatedMonthlySavingsCents Int                 @default(0)
+  followUpNeeded              Boolean              @default(false)
+  followUpNotes               String?
+  createdAt                   DateTime             @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Billing
+// ---------------------------------------------------------------------------
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PARTIALLY_PAID
+  PAID
+  VOID
+  REFUNDED
+}
+
+model Invoice {
+  id                    String        @id @default(cuid())
+  number                String        @unique
+  status                InvoiceStatus @default(DRAFT)
+  customerId            String?
+  customer              Customer?     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  facilityId            String?
+  facility              Facility?     @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  billToContactId       String?
+  billToContact         FamilyContact? @relation(fields: [billToContactId], references: [id], onDelete: SetNull)
+  appointmentId         String?
+  appointment           Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  techHelpDayId         String?
+  techHelpDay           TechHelpDay?  @relation(fields: [techHelpDayId], references: [id], onDelete: SetNull)
+  issuedAt              DateTime?
+  dueAt                 DateTime?
+  subtotalCents         Int           @default(0)
+  discountCents         Int           @default(0)
+  taxCents              Int           @default(0)
+  totalCents            Int           @default(0)
+  amountPaidCents       Int           @default(0)
+  amountRefundedCents   Int           @default(0)
+  depositCents          Int           @default(0)
+  notes                 String?
+  publicTokenHash       String?       @unique
+  stripeCheckoutSessionId String?     @unique
+  stripePaymentLinkUrl  String?
+  voidedAt              DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  lines    InvoiceLine[]
+  payments Payment[]
+
+  @@index([status])
+  @@index([customerId])
+  @@index([facilityId])
+}
+
+model InvoiceLine {
+  id             String   @id @default(cuid())
+  invoiceId      String
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description    String
+  quantity       Int      @default(1)
+  unitPriceCents Int
+  amountCents    Int
+  serviceId      String?
+  service        Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  kind           String   @default("SERVICE")
+  sortOrder      Int      @default(0)
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  STRIPE
+  CASH
+  CHECK
+  OTHER
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  invoiceId             String?
+  invoice               Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  customerId            String?
+  customer              Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  facilityId            String?
+  facility              Facility?     @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+  membershipId          String?
+  membership            Membership?   @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  amountCents           Int
+  refundedCents         Int           @default(0)
+  status                PaymentStatus
+  method                PaymentMethod
+  stripePaymentIntentId String?       @unique
+  stripeInvoiceId       String?       @unique
+  stripeChargeId        String?
+  failureReason         String?
+  reference             String?
+  notes                 String?
+  recordedById          String?
+  recordedBy            User?         @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  receivedAt            DateTime      @default(now())
+  createdAt             DateTime      @default(now())
+
+  refunds Refund[]
+
+  @@index([status, receivedAt])
+}
+
+model Refund {
+  id             String   @id @default(cuid())
+  paymentId      String
+  payment        Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  reason         String?
+  stripeRefundId String?  @unique
+  status         String
+  createdAt      DateTime @default(now())
+}
+
+model StripeEvent {
+  id          String   @id
+  type        String
+  status      String
+  error       String?
+  receivedAt  DateTime @default(now())
+  processedAt DateTime?
+}
+
+// ---------------------------------------------------------------------------
+// Memberships (Kindred Care)
+// ---------------------------------------------------------------------------
+
+enum BillingInterval {
+  MONTH
+  YEAR
+}
+
+model MembershipPlan {
+  id                      String          @id @default(cuid())
+  name                    String
+  slug                    String          @unique
+  description             String
+  priceCents              Int
+  interval                BillingInterval @default(MONTH)
+  stripePriceId           String?
+  priorityScheduling      Boolean         @default(true)
+  remoteMinutesPerPeriod  Int             @default(0)
+  annualReviewIncluded    Boolean         @default(false)
+  inHomeDiscountPercent   Int             @default(0)
+  benefitsText            String[]
+  isActive                Boolean         @default(true)
+  createdAt               DateTime        @default(now())
+
+  memberships Membership[]
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  PAST_DUE
+  PAUSED
+  CANCELED
+}
+
+model Membership {
+  id                   String           @id @default(cuid())
+  planId               String
+  plan                 MembershipPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  customerId           String
+  customer             Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  purchaserContactId   String?
+  purchaserContact     FamilyContact?   @relation("MembershipPurchaser", fields: [purchaserContactId], references: [id], onDelete: SetNull)
+  status               MembershipStatus @default(PENDING)
+  priceCents           Int
+  startedAt            DateTime?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean          @default(false)
+  canceledAt           DateTime?
+  cancelReason         String?
+  stripeSubscriptionId String?          @unique
+  stripeCheckoutSessionId String?       @unique
+  failedPaymentCount   Int              @default(0)
+  lastPaymentFailedAt  DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  usage    MembershipUsage[]
+  payments Payment[]
+
+  @@index([status])
+}
+
+enum MembershipUsageType {
+  REMOTE_MINUTES
+  ANNUAL_REVIEW
+  IN_HOME_DISCOUNT
+  PRIORITY_BOOKING
+}
+
+model MembershipUsage {
+  id            String              @id @default(cuid())
+  membershipId  String
+  membership    Membership          @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  type          MembershipUsageType
+  quantity      Int                 @default(1)
+  valueCents    Int                 @default(0)
+  appointmentId String?
+  appointment   Appointment?        @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  notes         String?
+  createdAt     DateTime            @default(now())
+
+  @@index([membershipId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Senior living facilities
+// ---------------------------------------------------------------------------
+
+enum FacilityType {
+  INDEPENDENT_LIVING
+  ASSISTED_LIVING
+  CONTINUING_CARE
+  SENIOR_APARTMENTS
+  MEMORY_CARE
+  NURSING
+  SENIOR_CENTER
+  OTHER
+}
+
+enum PartnershipStatus {
+  LEAD
+  CONTACTED
+  PROPOSAL_SENT
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum PartnershipModel {
+  RESIDENT_REFERRAL
+  RESIDENT_PAID_DAY
+  FACILITY_SPONSORED_DAY
+  RECURRING_CONTRACT
+}
+
+model Facility {
+  id                String            @id @default(cuid())
+  name              String
+  type              FacilityType      @default(INDEPENDENT_LIVING)
+  line1             String?
+  line2             String?
+  city              String?
+  state             String            @default("OH")
+  postalCode        String?
+  county            String?
+  lat               Float?
+  lng               Float?
+  phone             String?
+  email             String?
+  website           String?
+  residentCount     Int?
+  partnershipStatus PartnershipStatus @default(LEAD)
+  partnershipModel  PartnershipModel?
+  // Facility-specific resident rate override (cents)
+  residentRateCents Int?
+  internalNotes     String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  contacts         FacilityContact[]
+  agreements       FacilityAgreement[]
+  techHelpDays     TechHelpDay[]
+  helpDaySeries    TechHelpDaySeries[]
+  residents        Customer[]
+  appointments     Appointment[]
+  invoices         Invoice[]
+  payments         Payment[]
+  sessionRequests  FacilitySessionRequest[]
+  communications   Communication[]
+}
+
+enum FacilityContactRole {
+  PRIMARY
+  ACTIVITIES_DIRECTOR
+  EXECUTIVE_DIRECTOR
+  BILLING
+  OTHER
+}
+
+model FacilityContact {
+  id                String              @id @default(cuid())
+  facilityId        String
+  facility          Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  name              String
+  title             String?
+  role              FacilityContactRole @default(PRIMARY)
+  email             String?
+  phone             String?
+  userId            String?
+  user              User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  portalAccess      Boolean             @default(false)
+  canViewInvoices   Boolean             @default(true)
+  canRequestSessions Boolean            @default(true)
+  createdAt         DateTime            @default(now())
+
+  @@index([userId])
+}
+
+enum AgreementStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+model FacilityAgreement {
+  id                String           @id @default(cuid())
+  facilityId        String
+  facility          Facility         @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  model             PartnershipModel
+  status            AgreementStatus  @default(DRAFT)
+  startDate         DateTime?
+  endDate           DateTime?
+  renewalDate       DateTime?
+  autoRenew         Boolean          @default(false)
+  monthlyFeeCents   Int?
+  sessionRateCents  Int?
+  residentRateCents Int?
+  hoursPerMonth     Int?
+  terms             String?
+  signedAt          DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+enum HelpDayPaymentModel {
+  RESIDENT_PAID
+  FACILITY_SPONSORED
+  CONTRACT
+}
+
+enum HelpDayStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELED
+}
+
+model TechHelpDaySeries {
+  id              String              @id @default(cuid())
+  facilityId      String
+  facility        Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  frequency       String              // WEEKLY | BIWEEKLY | MONTHLY_NTH_WEEKDAY
+  dayOfWeek       Int
+  weekOfMonth     Int?
+  startMinute     Int
+  durationMinutes Int
+  startDate       DateTime
+  untilDate       DateTime?
+  createdAt       DateTime            @default(now())
+
+  days TechHelpDay[]
+}
+
+model TechHelpDay {
+  id                  String              @id @default(cuid())
+  facilityId          String
+  facility            Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  seriesId            String?
+  series              TechHelpDaySeries?  @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  technicianId        String?
+  technician          Technician?         @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  startsAt            DateTime
+  endsAt              DateTime
+  slotMinutes         Int                 @default(30)
+  slotBufferMinutes   Int                 @default(0)
+  location            String?
+  paymentModel        HelpDayPaymentModel @default(RESIDENT_PAID)
+  residentPriceCents  Int?
+  sponsoredPriceCents Int?
+  status              HelpDayStatus       @default(SCHEDULED)
+  notes               String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  appointments Appointment[]
+  invoices     Invoice[]
+
+  @@index([startsAt])
+}
+
+model FacilitySessionRequest {
+  id              String   @id @default(cuid())
+  facilityId      String
+  facility        Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  requestedByName String
+  preferredDates  String
+  notes           String?
+  status          String   @default("OPEN")
+  createdAt       DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Inbound leads & requests
+// ---------------------------------------------------------------------------
+
+model FacilityInquiry {
+  id            String   @id @default(cuid())
+  facilityName  String
+  contactName   String
+  contactTitle  String?
+  email         String
+  phone         String?
+  city          String?
+  residentCount Int?
+  interest      String?
+  message       String?
+  status        String   @default("NEW")
+  facilityId    String?
+  createdAt     DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  topic     String?
+  message   String
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+}
+
+model SupportRequest {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  subject    String
+  message    String
+  status     String   @default("OPEN")
+  createdAt  DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Communications, email & background jobs
+// ---------------------------------------------------------------------------
+
+enum TemplateCategory {
+  TRANSACTIONAL
+  MARKETING
+}
+
+model EmailTemplate {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  name        String
+  description String?
+  category    TemplateCategory @default(TRANSACTIONAL)
+  subject     String
+  body        String
+  isActive    Boolean          @default(true)
+  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime         @default(now())
+}
+
+enum CommunicationChannel {
+  EMAIL
+  SMS
+  PHONE
+  IN_PERSON
+  NOTE
+}
+
+enum CommunicationStatus {
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED
+  LOGGED
+}
+
+model Communication {
+  id                String               @id @default(cuid())
+  channel           CommunicationChannel
+  direction         String               @default("OUTBOUND")
+  customerId        String?
+  customer          Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  facilityId        String?
+  facility          Facility?            @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+  toAddress         String?
+  templateKey       String?
+  subject           String?
+  bodyPreview       String?
+  status            CommunicationStatus
+  statusReason      String?
+  provider          String?
+  providerMessageId String?
+  idempotencyKey    String?              @unique
+  relatedType       String?
+  relatedId         String?
+  createdById       String?
+  createdAt         DateTime             @default(now())
+  sentAt            DateTime?
+
+  @@index([customerId, createdAt])
+  @@index([createdAt])
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  DEAD
+}
+
+model Job {
+  id             String    @id @default(cuid())
+  type           String
+  payload        Json
+  status         JobStatus @default(PENDING)
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(5)
+  runAt          DateTime  @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  lastError      String?
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  @@index([status, runAt])
+}
