@@ -8,6 +8,8 @@ import { COMMUNITY_FAQS, COMMUNITY_TYPES, PARTNERSHIP_MARKETS, PARTNERSHIP_RADIU
 import { telHref } from "../_lib/format";
 import { pageMetadata, residentProgramJsonLd } from "../_lib/seo";
 import { InquiryForm } from "./InquiryForm";
+import { getPageImages } from "@/lib/media/service";
+import { SlotImage } from "@/components/media/SlotImage";
 
 export const metadata: Metadata = pageMetadata({
   path: "/senior-living",
@@ -49,13 +51,16 @@ const OTHER_OPTIONS = [
 ];
 
 export default async function SeniorLivingPage() {
-  const business = await getSettings("business");
+  const [business, images] = await Promise.all([getSettings("business"), getPageImages(["senior-living-hero", "senior-living-partnership"])]);
+  const hero = images["senior-living-hero"];
+  const partnershipPhoto = images["senior-living-partnership"];
   return (
     <>
       <JsonLd data={residentProgramJsonLd(business.name)} />
       <PageIntro
         eyebrow={`Senior living partnerships · ${REGION_LINE}`}
         title="Technology Support Your Residents Will Appreciate."
+        media={hero ? <SlotImage slotKey="senior-living-hero" image={hero} /> : undefined}
         actions={
           <>
             <ButtonLink href="#inquiry" size="lg">
@@ -166,7 +171,9 @@ export default async function SeniorLivingPage() {
               />
             </div>
           </div>
-          <div className="self-start rounded-lg border border-line bg-white p-6">
+          <div className="self-start space-y-6">
+            {partnershipPhoto && <SlotImage slotKey="senior-living-partnership" image={partnershipPhoto} />}
+            <div className="rounded-lg border border-line bg-white p-6">
             <h3 className="text-xl">What we ask of the community</h3>
             <div className="mt-4">
               <CheckList
@@ -179,6 +186,7 @@ export default async function SeniorLivingPage() {
               />
             </div>
             <p className="mt-4 text-sm">We do not need access to your community&apos;s internal systems, records, or software.</p>
+            </div>
           </div>
         </div>
       </Section>

@@ -4,6 +4,8 @@ import { ButtonLink } from "@/components/ui";
 import { getSettings } from "@/lib/settings";
 import { CtaBand, PageIntro, Section } from "../_components/Blocks";
 import { pageMetadata } from "../_lib/seo";
+import { getPageImages } from "@/lib/media/service";
+import { SlotImage } from "@/components/media/SlotImage";
 
 export const metadata: Metadata = pageMetadata({
   path: "/about",
@@ -40,7 +42,10 @@ const VALUES = [
 ];
 
 export default async function AboutPage() {
-  const business = await getSettings("business");
+  const [business, images] = await Promise.all([getSettings("business"), getPageImages(["about-owner"])]);
+  const ownerPhoto = images["about-owner"];
+  const ownerParagraphs = business.ownerBio.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  const showOwner = Boolean(ownerPhoto || business.ownerName || ownerParagraphs.length);
   return (
     <>
       <PageIntro eyebrow="About us" title={business.tagline || "Modern Technology. Old-Fashioned Service."}>
@@ -63,7 +68,26 @@ export default async function AboutPage() {
         </div>
       </Section>
 
-      <Section id="values" title="What we value" tone="white">
+      {showOwner && (
+        <section aria-labelledby="owner-title" className="border-y border-line bg-white">
+          <div className={`container-site grid gap-8 py-12 md:py-16 ${ownerPhoto ? "md:grid-cols-[320px_1fr] md:items-start" : ""}`}>
+            {ownerPhoto && <SlotImage slotKey="about-owner" image={ownerPhoto} className="mx-auto max-w-[320px] md:max-w-none" />}
+            <div className="max-w-3xl">
+              <h2 id="owner-title" className="text-2xl md:text-3xl">
+                {business.ownerName ? `Meet ${business.ownerName}` : "Meet the owner"}
+              </h2>
+              {business.ownerTitle && <p className="mt-1 text-lg font-semibold text-green-dark">{business.ownerTitle}</p>}
+              <div className="mt-4 space-y-4 text-lg">
+                {ownerParagraphs.map((p) => (
+                  <p key={p}>{p}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <Section id="values" title="What we value" tone={showOwner ? "soft" : "white"}>
         <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {VALUES.map((v) => (
             <li key={v.title} className="rounded-lg border border-line bg-soft p-6">
@@ -93,8 +117,8 @@ export default async function AboutPage() {
       <Section id="communities" title="Serving our communities" tone="white">
         <div className="max-w-3xl space-y-4 text-lg">
           <p>
-            We are based in Tuscarawas County, Ohio, and we also partner with senior living communities to offer on-site Tech Help Days for residents. As we grow, we
-            plan to serve neighboring Ohio counties.
+            We are based in Tuscarawas County, Ohio, where we provide in-home visits, and we partner with senior living and 55+ communities across East-Central and
+            Northeast Ohio to offer scheduled, on-site technology support for residents.
           </p>
           <div className="flex flex-wrap gap-3">
             <ButtonLink href="/service-areas" variant="outline">

@@ -17,6 +17,7 @@ const MAIN_NAV = [
   { href: "/services", label: "Services" },
   { href: "/senior-living", label: "Senior Living" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/tech-tips", label: "Tech Tips" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];

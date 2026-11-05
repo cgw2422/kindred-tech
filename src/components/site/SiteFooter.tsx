@@ -34,6 +34,7 @@ export function SiteFooter({ business }: { business: Settings<"business"> }) {
               ["/senior-living#inquiry", "Request a Partnership Proposal"],
               ["/pricing", "Pricing"],
               ["/service-areas", "Service Areas"],
+              ["/tech-tips", "Tech Tips"],
               ["/faq", "Frequently Asked Questions"],
               ["/contact", "Contact"],
               ["/schedule", "Schedule a Visit"],

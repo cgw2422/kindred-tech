@@ -111,6 +111,15 @@ export default async function SettingsPage() {
             </div>
             <Checkbox name="showAddressPublicly" label="Show the street address on the website" defaultChecked={s.business.showAddressPublicly} />
             <TextArea label="Hours description" name="hoursDescription" rows={2} defaultValue={s.business.hoursDescription} hint="Plain-language hours shown on the website." />
+            <fieldset className="mt-6 rounded-md border border-line p-4">
+              <legend className="px-1 font-semibold text-navy">About page: Meet the owner (optional)</legend>
+              <p className="mb-3">Shown on the About page when filled in. Add the photo under Website &gt; Page Images &gt; About: Owner photograph.</p>
+              <div className="grid gap-x-6 md:grid-cols-2">
+                <TextInput label="Owner name" name="ownerName" defaultValue={s.business.ownerName} />
+                <TextInput label="Owner title" name="ownerTitle" defaultValue={s.business.ownerTitle} hint="For example, Owner and Technician" />
+              </div>
+              <TextArea label="Owner introduction" name="ownerBio" rows={5} defaultValue={s.business.ownerBio} hint="A few sentences in your own words. Leave a blank line between paragraphs." />
+            </fieldset>
           </SettingsForm>
         </Section>
 

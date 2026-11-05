@@ -25,6 +25,7 @@ export const PERMISSIONS = [
   "settings:manage",
   "users:manage",
   "audit:view",
+  "website:manage",
   "tech:portal",
   "customer:portal",
   "facility:portal",

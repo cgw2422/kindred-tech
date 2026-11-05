@@ -24,6 +24,10 @@ export const settingsSchemas = {
     hoursDescription: z.string(),
     timeZone: z.string(),
     logoUrl: z.string(),
+    // Optional "Meet the owner" section on the About page (hidden when blank and no photo).
+    ownerName: z.string().max(120).default(""),
+    ownerTitle: z.string().max(120).default(""),
+    ownerBio: z.string().max(3000).default(""),
   }),
   hours: z.object({ days: z.array(dayHours).length(7) }),
   booking: z.object({
@@ -83,6 +87,9 @@ export const settingsDefaults: { [K in SettingsKey]: Settings<K> } = {
     hoursDescription: "Monday through Friday, 9:00 AM to 5:00 PM. Saturday by appointment.",
     timeZone: "America/New_York",
     logoUrl: "",
+    ownerName: "",
+    ownerTitle: "",
+    ownerBio: "",
   },
   hours: { days: [closed, weekday, weekday, weekday, weekday, weekday, { open: true, startMinute: 10 * 60, endMinute: 14 * 60 }] },
   booking: {

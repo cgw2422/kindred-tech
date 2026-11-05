@@ -7,6 +7,10 @@ import { CheckList, CtaBand } from "./_components/Blocks";
 import { JsonLd } from "./_components/JsonLd";
 import { getActiveServiceAreas, getKindredCarePlan } from "./_lib/data";
 import { REGION_LINE } from "@/lib/community";
+import { getPageImages } from "@/lib/media/service";
+import { latestArticles } from "@/lib/articles/service";
+import { SlotImage } from "@/components/media/SlotImage";
+import { ArticleCard } from "./tech-tips/_components/ArticleCard";
 import { joinList } from "./_lib/format";
 import { localBusinessJsonLd, pageMetadata } from "./_lib/seo";
 import { SERVICE_PAGES } from "./services/content";
@@ -45,7 +49,15 @@ const PROMISES = [
 ];
 
 export default async function HomePage() {
-  const [business, areas, plan] = await Promise.all([getSettings("business"), getActiveServiceAreas(), getKindredCarePlan()]);
+  const [business, areas, plan, images, tips] = await Promise.all([
+    getSettings("business"),
+    getActiveServiceAreas(),
+    getKindredCarePlan(),
+    getPageImages(["home-hero", "home-secondary"]),
+    latestArticles(3),
+  ]);
+  const hero = images["home-hero"];
+  const secondary = images["home-secondary"];
   const counties = areas.map((a) => `${a.county} County`);
   const communities = areas.flatMap((a) => a.communities);
 
@@ -84,21 +96,25 @@ export default async function HomePage() {
               </p>
             )}
           </div>
-          <div className="rounded-lg border border-line bg-soft p-6 md:p-8">
-            <h2 className="text-xl md:text-2xl">{business.secondaryTagline}</h2>
-            <ul className="mt-5 space-y-4">
-              {[
-                ["In your home", "Help at your own kitchen table, on your own devices."],
-                ["At your pace", "We take the time to explain, and repeat as often as you like."],
-                ["Family friendly", "Adult children can arrange and pay for help for a parent."],
-              ].map(([t, d]) => (
-                <li key={t} className="border-l-4 border-green pl-4">
-                  <p className="font-semibold text-navy">{t}</p>
-                  <p>{d}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {hero ? (
+            <SlotImage slotKey="home-hero" image={hero} />
+          ) : (
+            <div className="rounded-lg border border-line bg-soft p-6 md:p-8">
+              <h2 className="text-xl md:text-2xl">{business.secondaryTagline}</h2>
+              <ul className="mt-5 space-y-4">
+                {[
+                  ["In your home", "Help at your own kitchen table, on your own devices."],
+                  ["At your pace", "We take the time to explain, and repeat as often as you like."],
+                  ["Family friendly", "Adult children can arrange and pay for help for a parent."],
+                ].map(([t, d]) => (
+                  <li key={t} className="border-l-4 border-green pl-4">
+                    <p className="font-semibold text-navy">{t}</p>
+                    <p>{d}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </section>
 
@@ -303,16 +319,45 @@ export default async function HomePage() {
             What you can expect from us
           </h2>
           <p className="mt-3 max-w-3xl text-lg">Technology help should feel respectful and trustworthy. These are the standards we hold ourselves to on every visit.</p>
-          <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {PROMISES.map((p) => (
-              <li key={p.title} className="rounded-lg border-t-4 border-green bg-white p-6 shadow-sm">
-                <h3 className="text-lg">{p.title}</h3>
-                <p className="mt-2">{p.text}</p>
-              </li>
-            ))}
-          </ul>
+          <div className={secondary ? "mt-8 grid gap-8 lg:grid-cols-[minmax(0,380px)_1fr] lg:items-start" : "mt-8"}>
+            {secondary && <SlotImage slotKey="home-secondary" image={secondary} className="lg:sticky lg:top-6" />}
+            <ul className={`grid gap-5 sm:grid-cols-2 ${secondary ? "" : "lg:grid-cols-3"}`}>
+              {PROMISES.map((p) => (
+                <li key={p.title} className="rounded-lg border-t-4 border-green bg-white p-6 shadow-sm">
+                  <h3 className="text-lg">{p.title}</h3>
+                  <p className="mt-2">{p.text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
+
+      {/* Tech Tips (hidden until articles are published) */}
+      {tips.length > 0 && (
+        <section aria-labelledby="tips-title" className="border-t border-line">
+          <div className="container-site py-14 md:py-16">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div className="max-w-2xl">
+                <h2 id="tips-title" className="text-2xl md:text-3xl">
+                  Helpful Technology Tips
+                </h2>
+                <p className="mt-3 text-lg">Plain-language answers to everyday technology questions.</p>
+              </div>
+              <ButtonLink href="/tech-tips" variant="outline">
+                View All Tech Tips
+              </ButtonLink>
+            </div>
+            <ul className="mt-8 grid gap-6 md:grid-cols-3">
+              {tips.map((a) => (
+                <li key={a.id}>
+                  <ArticleCard article={a} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* Service area */}
       <section aria-labelledby="area-title" className="border-t border-line bg-white">

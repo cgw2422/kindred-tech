@@ -3,6 +3,7 @@ import { getSettings } from "../settings";
 import { notifyAppointment } from "../booking/service";
 import { queueTemplatedEmail } from "../email/send";
 import { enqueueJob, registerJobHandler } from "./queue";
+import { publishDueScheduled } from "../articles/service";
 
 /**
  * Periodic maintenance and notification jobs. Each is idempotent: running it
@@ -68,6 +69,9 @@ registerJobHandler("appointments.reminders", async () => {
 registerJobHandler("appointments.review-requests", async () => {
   await sendReviewRequests();
 });
+registerJobHandler("articles.publish-scheduled", async () => {
+  await publishDueScheduled();
+});
 registerJobHandler("maintenance.retention", async () => {
   await applyRetention();
 });
@@ -81,6 +85,7 @@ export async function schedulePeriodicJobs(now = new Date()) {
   const quarter = `${hour}:${Math.floor(now.getUTCMinutes() / 15)}`;
   const dayKey = now.toISOString().slice(0, 10);
   await enqueueJob("appointments.reminders", {}, { idempotencyKey: `periodic:reminders:${quarter}`, maxAttempts: 3 });
+  await enqueueJob("articles.publish-scheduled", {}, { idempotencyKey: `periodic:articles:${quarter}`, maxAttempts: 3 });
   await enqueueJob("appointments.review-requests", {}, { idempotencyKey: `periodic:reviews:${hour}`, maxAttempts: 3 });
   await enqueueJob("facility.renewal-reminders", {}, { idempotencyKey: `periodic:renewals:${dayKey}`, maxAttempts: 3 });
   await enqueueJob("maintenance.retention", {}, { idempotencyKey: `periodic:retention:${dayKey}`, maxAttempts: 3 });

@@ -14,6 +14,11 @@ import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/lib/auth/password";
 import { DEFAULT_TEMPLATES } from "../src/lib/email/defaults";
 import { settingsDefaults } from "../src/lib/settings";
+import { markdownToHtml } from "../src/lib/articles/html";
+import { ARTICLES_PART1 } from "./seed-data/articles/part1";
+import { ARTICLES_PART2 } from "./seed-data/articles/part2";
+import { ARTICLES_PART3 } from "./seed-data/articles/part3";
+import { ARTICLES_PART4 } from "./seed-data/articles/part4";
 
 const prisma = new PrismaClient();
 
@@ -236,6 +241,53 @@ async function seedReferenceData() {
   }
 }
 
+const ARTICLE_CATEGORIES = [
+  { slug: "smartphones-tablets", name: "Smartphones & Tablets", description: "Getting comfortable with your iPhone, Android phone, or tablet." },
+  { slug: "computers-laptops", name: "Computers & Laptops", description: "Everyday help with Windows computers, Macs, and laptops." },
+  { slug: "internet-wifi", name: "Internet & Wi-Fi", description: "Getting online and staying connected at home." },
+  { slug: "online-safety", name: "Online Safety & Scam Prevention", description: "How to recognize scams and protect yourself online and on the phone." },
+  { slug: "smart-tv-streaming", name: "Smart TVs & Streaming", description: "Setting up smart TVs and streaming services." },
+  { slug: "staying-connected", name: "Staying Connected With Family", description: "Video calls, photos, and messages with the people you care about." },
+  { slug: "passwords-accounts", name: "Passwords & Accounts", description: "Keeping your accounts secure without the frustration." },
+  { slug: "buying-guides", name: "Technology Buying Guides", description: "What to look for before you buy a new device." },
+  { slug: "general-tips", name: "General Technology Tips", description: "Everyday tips for the technology in your life." },
+];
+
+/**
+ * Tech Tips: categories and the initial articles. Idempotent and non-destructive:
+ * existing categories and articles (matched by slug / seedKey) are never overwritten,
+ * so edits made in the admin dashboard are preserved. New articles are DRAFTS.
+ */
+async function seedTechTips() {
+  const catIds: Record<string, string> = {};
+  for (const [i, c] of ARTICLE_CATEGORIES.entries()) {
+    const row = await prisma.articleCategory.upsert({ where: { slug: c.slug }, create: { ...c, sortOrder: i + 1 }, update: {} });
+    catIds[c.slug] = row.id;
+  }
+  let created = 0;
+  for (const a of [...ARTICLES_PART1, ...ARTICLES_PART2, ...ARTICLES_PART3, ...ARTICLES_PART4]) {
+    const exists = await prisma.article.findUnique({ where: { seedKey: a.seedKey }, select: { id: true } });
+    if (exists) continue;
+    const slugTaken = await prisma.article.findUnique({ where: { slug: a.slug }, select: { id: true } });
+    if (slugTaken) continue; // an article with this URL already exists; leave it alone
+    await prisma.article.create({
+      data: {
+        seedKey: a.seedKey,
+        slug: a.slug,
+        title: a.title,
+        excerpt: a.excerpt,
+        content: markdownToHtml(a.body),
+        categoryId: catIds[a.category] ?? null,
+        seoTitle: a.seoTitle,
+        metaDescription: a.metaDescription,
+        status: "DRAFT",
+      },
+    });
+    created++;
+  }
+  console.log(`Tech Tips: ${created} new draft article(s) added.`);
+}
+
 async function seedOwner() {
   const email = (process.env.SEED_OWNER_EMAIL ?? "owner@example.com").toLowerCase();
   const password = process.env.SEED_OWNER_PASSWORD ?? (process.env.NODE_ENV === "production" ? undefined : "KindredDev!2026");
@@ -322,6 +374,7 @@ async function seedSampleData() {
 
 async function main() {
   await seedReferenceData();
+  await seedTechTips();
   await seedOwner();
   const allowSample = process.env.NODE_ENV !== "production" && process.env.SEED_SAMPLE_DATA !== "false";
   if (allowSample) await seedSampleData();

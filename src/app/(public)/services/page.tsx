@@ -6,6 +6,8 @@ import { getActiveServices } from "../_lib/data";
 import { durationLabel, extensionLabel, servicePriceLabel } from "../_lib/format";
 import { pageMetadata } from "../_lib/seo";
 import { SERVICE_PAGES } from "./content";
+import { getPageImages } from "@/lib/media/service";
+import { SlotImage } from "@/components/media/SlotImage";
 
 export const metadata: Metadata = pageMetadata({
   path: "/services",
@@ -28,7 +30,8 @@ function timeLabel(s: CatalogService) {
 }
 
 export default async function ServicesPage() {
-  const services = await getActiveServices();
+  const [services, images] = await Promise.all([getActiveServices(), getPageImages(["services-featured"])]);
+  const featured = images["services-featured"];
   const bySlug = new Map(services.map((s) => [s.slug, s]));
   const residential = services.filter((s) => s.isBookableOnline);
   const community = services.filter((s) => !s.isBookableOnline);
@@ -38,6 +41,7 @@ export default async function ServicesPage() {
       <PageIntro
         eyebrow="Our services"
         title="Patient help with the technology in your life"
+        media={featured ? <SlotImage slotKey="services-featured" image={featured} /> : undefined}
         actions={
           <>
             <ButtonLink href="/schedule" size="lg">

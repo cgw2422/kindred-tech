@@ -3,17 +3,27 @@ import Link from "next/link";
 import { ButtonLink } from "@/components/ui";
 
 /** Top-of-page introduction used on inner marketing pages. */
-export function PageIntro({ eyebrow, title, children, actions }: { eyebrow?: string; title: string; children?: ReactNode; actions?: ReactNode }) {
+export function PageIntro({ eyebrow, title, children, actions, media }: { eyebrow?: string; title: string; children?: ReactNode; actions?: ReactNode; media?: ReactNode }) {
+  const text = (
+    <div>
+      {eyebrow && <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-green-dark">{eyebrow}</p>}
+      <h1 id="page-title" className="max-w-3xl text-3xl md:text-[2.6rem]">
+        {title}
+      </h1>
+      {children && <div className="mt-4 max-w-3xl text-lg md:text-xl">{children}</div>}
+      {actions && <div className="mt-7 flex flex-wrap gap-3">{actions}</div>}
+    </div>
+  );
   return (
     <section className="border-b border-line bg-white" aria-labelledby="page-title">
-      <div className="container-site py-12 md:py-16">
-        {eyebrow && <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-green-dark">{eyebrow}</p>}
-        <h1 id="page-title" className="max-w-3xl text-3xl md:text-[2.6rem]">
-          {title}
-        </h1>
-        {children && <div className="mt-4 max-w-3xl text-lg md:text-xl">{children}</div>}
-        {actions && <div className="mt-7 flex flex-wrap gap-3">{actions}</div>}
-      </div>
+      {media ? (
+        <div className="container-site grid items-center gap-8 py-12 md:py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-12">
+          {text}
+          <div>{media}</div>
+        </div>
+      ) : (
+        <div className="container-site py-12 md:py-16">{text}</div>
+      )}
     </section>
   );
 }

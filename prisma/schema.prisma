@@ -1214,3 +1214,122 @@ model Job {
 
   @@index([status, runAt])
 }
+
+// ---------------------------------------------------------------------------
+// Website content: media library, page image slots, Tech Tips articles
+// ---------------------------------------------------------------------------
+
+model MediaAsset {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  altText          String   @default("")
+  /**
+   * Object-storage key of the optimized master image (EXIF/GPS stripped).
+   */
+  masterKey        String
+  originalFilename String?
+  mimeType         String
+  width            Int
+  height           Int
+  sizeBytes        Int
+  sha256           String
+  /**
+   * Bumped whenever the image file or its default crop changes (cache busting).
+   */
+  version          Int      @default(1)
+  // Default crop as fractions (0-1) of the master; null = full image.
+  cropX            Float?
+  cropY            Float?
+  cropW            Float?
+  cropH            Float?
+  focalX           Float    @default(0.5)
+  focalY           Float    @default(0.5)
+  /**
+   * Where the image came from and its license, e.g. "Owner photo" or a stock license.
+   */
+  source           String?
+  license          String?
+  attribution      String?
+  uploadedById     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  pageImages       PageImage[]
+  featuredArticles Article[]
+
+  @@index([createdAt])
+}
+
+/**
+ * Assignment of a media asset to a fixed image slot on a public page.
+ */
+model PageImage {
+  slotKey      String     @id
+  assetId      String
+  asset        MediaAsset @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  /**
+   * Overrides the asset's alt text for this slot.
+   */
+  altText      String?
+  cropX        Float?
+  cropY        Float?
+  cropW        Float?
+  cropH        Float?
+  focalX       Float      @default(0.5)
+  focalY       Float      @default(0.5)
+  mobileFocalX Float      @default(0.5)
+  mobileFocalY Float      @default(0.5)
+  version      Int        @default(1)
+  updatedById  String?
+  updatedAt    DateTime   @updatedAt
+}
+
+model ArticleCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  articles    Article[]
+}
+
+enum ArticleStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+}
+
+model Article {
+  id               String           @id @default(cuid())
+  /**
+   * Set only for articles created by the seed; used to make seeding idempotent.
+   */
+  seedKey          String?          @unique
+  title            String
+  slug             String           @unique
+  excerpt          String           @default("")
+  /**
+   * Sanitized HTML. Inline images are <img data-media-id="..."> and rendered responsively.
+   */
+  content          String           @default("")
+  categoryId       String?
+  category         ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  featuredImageId  String?
+  featuredImage    MediaAsset?      @relation(fields: [featuredImageId], references: [id], onDelete: Restrict)
+  featuredImageAlt String?
+  seoTitle         String?
+  metaDescription  String?
+  status           ArticleStatus    @default(DRAFT)
+  featured         Boolean          @default(false)
+  publishedAt      DateTime?
+  scheduledFor     DateTime?
+  authorId         String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([status, scheduledFor])
+  @@index([categoryId])
+}
