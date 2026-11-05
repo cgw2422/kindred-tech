@@ -55,13 +55,18 @@ export function backoffMs(attempt: number): number {
 }
 
 async function claimJobs(workerId: string, limit: number) {
+  // Only claim job types this process can handle, so a web process that has not
+  // loaded every handler never fails jobs that belong to the worker.
+  const types = [...handlers.keys()];
+  if (types.length === 0) return [];
   // Also reclaim jobs whose worker died (locked > 10 minutes ago).
   return prisma.$queryRaw<{ id: string; type: string; payload: Record<string, unknown>; attempts: number; maxAttempts: number }[]>`
     UPDATE "Job" SET "status" = 'RUNNING', "lockedAt" = now(), "lockedBy" = ${workerId}, "attempts" = "attempts" + 1
     WHERE "id" IN (
       SELECT "id" FROM "Job"
-      WHERE ("status" IN ('PENDING','FAILED') AND "runAt" <= now())
-         OR ("status" = 'RUNNING' AND "lockedAt" < now() - interval '10 minutes')
+      WHERE "type" = ANY(${types}::text[])
+        AND (("status" IN ('PENDING','FAILED') AND "runAt" <= now())
+         OR ("status" = 'RUNNING' AND "lockedAt" < now() - interval '10 minutes'))
       ORDER BY "runAt" ASC
       LIMIT ${limit}
       FOR UPDATE SKIP LOCKED
