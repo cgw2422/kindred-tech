@@ -39,7 +39,7 @@
     text-wrap: balance;
   }
   a {
-    @apply text-navy underline-offset-4;
+    @apply text-navy underline underline-offset-4;
   }
   :focus-visible {
     outline: 3px solid #477c32;

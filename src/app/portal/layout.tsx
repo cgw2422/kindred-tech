@@ -26,7 +26,7 @@ export default async function PortalLayout({ children }: { children: React.React
       </a>
       <header className="border-b border-line bg-white">
         <div className="container-site flex flex-wrap items-center justify-between gap-4 py-4">
-          <Link href="/" className="no-underline" aria-label="Kindred Tech Support home">
+          <Link href="/" className="no-underline">
             <Logo />
           </Link>
           <div className="flex items-center gap-4">

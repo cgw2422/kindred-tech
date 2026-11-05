@@ -40,7 +40,7 @@ export function SiteHeader({ phone }: { phone?: string }) {
         </div>
       )}
       <div className="container-site flex items-center justify-between gap-4 py-4">
-        <Link href="/" className="no-underline" aria-label="Kindred Tech Support home">
+        <Link href="/" className="no-underline">
           <Logo />
         </Link>
         <nav aria-label="Main" className="hidden lg:block">

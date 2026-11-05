@@ -40,7 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <a href="#admin-main" className="skip-link">
         Skip to main content
       </a>
-      <aside className="bg-navy-dark text-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:overflow-y-auto">
+      <aside className="no-print bg-navy-dark text-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:overflow-y-auto">
         <div className="flex items-center justify-between p-4">
           <Link href="/admin" className="no-underline">
             <Logo inverted compact />
@@ -57,7 +57,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
       <div className="min-w-0 flex-1">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white px-4 py-3 md:px-8">
+        <header className="no-print flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white px-4 py-3 md:px-8">
           <form action="/admin/search" method="get" role="search" className="flex w-full max-w-md gap-2">
             <label htmlFor="global-search" className="sr-only">
               Search customers, appointments, invoices, facilities

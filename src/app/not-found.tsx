@@ -11,7 +11,7 @@ export default function NotFound() {
     <>
       <header className="border-b border-line bg-white">
         <div className="container-site py-4">
-          <Link href="/" className="inline-block no-underline" aria-label="Kindred Tech Support home">
+          <Link href="/" className="inline-block no-underline">
             <Logo />
           </Link>
         </div>
