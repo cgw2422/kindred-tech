@@ -36,6 +36,7 @@ export function SlotPicker({
   value,
   onChange,
   manageToken,
+  appointmentId,
 }: {
   serviceId: string;
   extensionBlocks?: number;
@@ -43,6 +44,7 @@ export function SlotPicker({
   value: string | null;
   onChange: (iso: string | null) => void;
   manageToken?: string;
+  appointmentId?: string;
 }) {
   const [from, setFrom] = useState(() => todayKey(timeZone));
   const [days, setDays] = useState<DayData[] | null>(null);
@@ -55,6 +57,7 @@ export function SlotPicker({
     let cancelled = false;
     const params = new URLSearchParams({ serviceId, from, days: String(WINDOW), ext: String(extensionBlocks) });
     if (manageToken) params.set("manage", manageToken);
+    if (appointmentId) params.set("appointment", appointmentId);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetch(`/api/booking/availability?${params}`)
@@ -76,7 +79,7 @@ export function SlotPicker({
     return () => {
       cancelled = true;
     };
-  }, [serviceId, from, extensionBlocks, manageToken]);
+  }, [serviceId, from, extensionBlocks, manageToken, appointmentId]);
 
   const selectedSlots = useMemo(() => days?.find((d) => d.date === selectedDay)?.slots ?? [], [days, selectedDay]);
   const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString("en-US", { timeZone, hour: "numeric", minute: "2-digit" });

@@ -42,7 +42,7 @@ export function PortalAppointmentControls({ appointmentId, serviceId, timeZone, 
       </div>
       {mode === "move" && (
         <div className="mt-4">
-          <SlotPicker serviceId={serviceId} timeZone={timeZone} value={slot} onChange={setSlot} extensionBlocks={extensionBlocks} />
+          <SlotPicker serviceId={serviceId} timeZone={timeZone} value={slot} onChange={setSlot} extensionBlocks={extensionBlocks} appointmentId={appointmentId} />
           <button type="button" disabled={!slot || pending} className={buttonClass("primary", "md", "mt-4")} onClick={() => slot && run(() => portalRescheduleAction(appointmentId, slot))}>
             {pending ? "Saving..." : "Move my appointment"}
           </button>

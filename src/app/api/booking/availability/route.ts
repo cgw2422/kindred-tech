@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAvailability, BookingError, findAppointmentByManageToken } from "@/lib/booking/service";
 import { getSettings } from "@/lib/settings";
+import { getSessionUser } from "@/lib/auth/session";
+import { assertAppointmentAccess } from "@/lib/portal/access";
 import { ipFromHeaders, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +24,19 @@ export async function GET(req: NextRequest) {
   if (manageToken) {
     const appt = await findAppointmentByManageToken(manageToken);
     if (appt) excludeAppointmentId = appt.id;
+  }
+  // Signed-in portal users rescheduling an appointment they are allowed to change.
+  const own = sp.get("appointment");
+  if (!excludeAppointmentId && own) {
+    const user = await getSessionUser();
+    if (user) {
+      try {
+        await assertAppointmentAccess(user, own, "schedule");
+        excludeAppointmentId = own;
+      } catch {
+        /* not permitted: ignore */
+      }
+    }
   }
   try {
     const days_ = await getAvailability({ serviceId, fromDateKey: from, days, extensionBlocks: ext, excludeAppointmentId });
