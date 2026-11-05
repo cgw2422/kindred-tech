@@ -233,3 +233,44 @@ export function invoiceLinesFromEstimate(estimate: Prisma.JsonValue | null): New
   if (!e?.lines) return [];
   return e.lines.filter((l) => l.kind !== "TAX").map((l) => ({ description: l.label, unitPriceCents: l.amountCents, kind: l.kind }));
 }
+
+/**
+ * Issues an invoice and remembers its public pay link (stripePaymentLinkUrl)
+ * so staff can copy it again later without invalidating the emailed link.
+ */
+export async function issueInvoiceWithPayLink(invoiceId: string, opts: { sendEmail?: boolean; actorUserId?: string | null } = {}) {
+  const result = await issueInvoice(invoiceId, opts);
+  await prisma.invoice.update({ where: { id: invoiceId }, data: { stripePaymentLinkUrl: result.payUrl } });
+  return result;
+}
+
+/** Generates a new pay link (invalidating the old one) and stores it. */
+export async function regeneratePayLink(invoiceId: string) {
+  const inv = await prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
+  if (inv.status === "DRAFT" || inv.status === "VOID") throw new InvoiceError("Issue the invoice before creating a pay link.");
+  const r = await regeneratePayToken(invoiceId);
+  await prisma.invoice.update({ where: { id: invoiceId }, data: { stripePaymentLinkUrl: r.url } });
+  return r;
+}
+
+/**
+ * Like replaceInvoiceLines, but keeps the stored pay link: the public token is
+ * unchanged by editing lines, so the link the customer already has still works.
+ */
+export async function replaceInvoiceLinesKeepingPayLink(invoiceId: string, lines: NewInvoiceLine[]) {
+  if (lines.length === 0) throw new InvoiceError("An invoice needs at least one line.");
+  const before = await prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
+  const updated = await replaceInvoiceLines(invoiceId, lines);
+  if (before.stripePaymentLinkUrl && updated.publicTokenHash === before.publicTokenHash) {
+    return prisma.invoice.update({ where: { id: invoiceId }, data: { stripePaymentLinkUrl: before.stripePaymentLinkUrl } });
+  }
+  return updated;
+}
+
+/** Changes the deposit on an unpaid invoice. */
+export async function updateInvoiceDeposit(invoiceId: string, depositCents: number, notes?: string | null) {
+  const inv = await prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
+  if (inv.amountPaidCents > 0 || !["DRAFT", "OPEN"].includes(inv.status)) throw new InvoiceError("Only unpaid invoices can be edited.");
+  if (depositCents < 0 || depositCents > inv.totalCents) throw new InvoiceError("The deposit must be between zero and the invoice total.");
+  return prisma.invoice.update({ where: { id: invoiceId }, data: { depositCents, ...(notes !== undefined ? { notes } : {}) } });
+}
