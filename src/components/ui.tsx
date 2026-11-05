@@ -133,6 +133,7 @@ const inputClass =
   "block w-full rounded-md border-2 border-line bg-white px-3 py-2.5 text-base text-navy-dark placeholder:text-gray-500 focus:border-navy focus:outline-none aria-[invalid=true]:border-danger";
 
 export function Field({ label, name, hint, error, required, children }: { label: string; name: string; hint?: ReactNode; error?: string; required?: boolean; children: ReactNode }) {
+  // `name` here is the element id used for label/hint/error association.
   return (
     <div className="mb-4">
       <label htmlFor={name} className="mb-1 block font-semibold text-navy">
@@ -157,15 +158,16 @@ export function Field({ label, name, hint, error, required, children }: { label:
 
 type FieldProps = { label: string; name: string; hint?: ReactNode; error?: string; required?: boolean };
 
-export function TextInput({ label, name, hint, error, required, className = "", ...rest }: FieldProps & Omit<ComponentProps<"input">, "name">) {
+export function TextInput({ label, name, hint, error, required, className = "", id: idProp, ...rest }: FieldProps & Omit<ComponentProps<"input">, "name">) {
+  const id = idProp ?? name;
   return (
-    <Field label={label} name={name} hint={hint} error={error} required={required}>
+    <Field label={label} name={id} hint={hint} error={error} required={required}>
       <input
-        id={name}
+        id={id}
         name={name}
         required={required}
         aria-invalid={error ? true : undefined}
-        aria-describedby={[hint ? `${name}-hint` : "", error ? `${name}-error` : ""].filter(Boolean).join(" ") || undefined}
+        aria-describedby={[hint ? `${id}-hint` : "", error ? `${id}-error` : ""].filter(Boolean).join(" ") || undefined}
         className={`${inputClass} ${className}`}
         {...rest}
       />
@@ -173,16 +175,17 @@ export function TextInput({ label, name, hint, error, required, className = "", 
   );
 }
 
-export function TextArea({ label, name, hint, error, required, rows = 4, ...rest }: FieldProps & Omit<ComponentProps<"textarea">, "name">) {
+export function TextArea({ label, name, hint, error, required, rows = 4, id: idProp, ...rest }: FieldProps & Omit<ComponentProps<"textarea">, "name">) {
+  const id = idProp ?? name;
   return (
-    <Field label={label} name={name} hint={hint} error={error} required={required}>
+    <Field label={label} name={id} hint={hint} error={error} required={required}>
       <textarea
-        id={name}
+        id={id}
         name={name}
         rows={rows}
         required={required}
         aria-invalid={error ? true : undefined}
-        aria-describedby={[hint ? `${name}-hint` : "", error ? `${name}-error` : ""].filter(Boolean).join(" ") || undefined}
+        aria-describedby={[hint ? `${id}-hint` : "", error ? `${id}-error` : ""].filter(Boolean).join(" ") || undefined}
         className={inputClass}
         {...rest}
       />
@@ -190,15 +193,16 @@ export function TextArea({ label, name, hint, error, required, rows = 4, ...rest
   );
 }
 
-export function Select({ label, name, hint, error, required, options, placeholder, ...rest }: FieldProps & Omit<ComponentProps<"select">, "name"> & { options: { value: string; label: string }[]; placeholder?: string }) {
+export function Select({ label, name, hint, error, required, options, placeholder, id: idProp, ...rest }: FieldProps & Omit<ComponentProps<"select">, "name"> & { options: { value: string; label: string }[]; placeholder?: string }) {
+  const id = idProp ?? name;
   return (
-    <Field label={label} name={name} hint={hint} error={error} required={required}>
+    <Field label={label} name={id} hint={hint} error={error} required={required}>
       <select
-        id={name}
+        id={id}
         name={name}
         required={required}
         aria-invalid={error ? true : undefined}
-        aria-describedby={[hint ? `${name}-hint` : "", error ? `${name}-error` : ""].filter(Boolean).join(" ") || undefined}
+        aria-describedby={[hint ? `${id}-hint` : "", error ? `${id}-error` : ""].filter(Boolean).join(" ") || undefined}
         className={inputClass}
         {...rest}
       >

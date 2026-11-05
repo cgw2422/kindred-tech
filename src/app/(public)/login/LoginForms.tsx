@@ -13,8 +13,8 @@ export function PasswordLoginForm({ next }: { next?: string }) {
     <form action={action} noValidate>
       <FormMessage state={state} />
       <input type="hidden" name="next" value={next ?? ""} />
-      <TextInput label="Email address" name="email" type="email" autoComplete="email" required />
-      <TextInput label="Password" name="password" type="password" autoComplete="current-password" required />
+      <TextInput id="password-email" label="Email address" name="email" type="email" autoComplete="email" required />
+      <TextInput id="password-password" label="Password" name="password" type="password" autoComplete="current-password" required />
       <SubmitButton pendingText="Signing in..." className="w-full" size="lg">
         Sign In
       </SubmitButton>
@@ -41,6 +41,7 @@ export function EmailLinkForm({ purpose = "signin" }: { purpose?: "signin" | "re
       )}
       <input type="hidden" name="purpose" value={purpose} />
       <TextInput
+        id={`${purpose}-link-email`}
         label="Email address"
         name="email"
         type="email"
