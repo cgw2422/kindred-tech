@@ -315,6 +315,9 @@ export async function getVariant(assetId: string, tag: string, width: number, fo
   if (parsed.kind === "asset") {
     crop = cropOf(asset);
     current = parsed.version === asset.version;
+  } else if (parsed.kind === "original") {
+    crop = null;
+    current = parsed.version === asset.version;
   } else {
     const slot = await prisma.pageImage.findUnique({ where: { slotKey: parsed.slotKey } });
     if (!slot || slot.assetId !== asset.id) {

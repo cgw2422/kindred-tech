@@ -63,3 +63,19 @@ Customer experience and community-partnership improvements. No prices, services,
 - Accessibility: small buttons are now 44px tall, footer text uses the base size, and form fieldsets have legends. The axe scan covers 12 public pages.
 - Database: migration `facility_inquiry_details` adds three nullable columns to `FacilityInquiry`.
 - Tests: 217 unit and integration tests pass, 23 end-to-end and accessibility tests pass, and the production build passes.
+
+## Website photography, Media Library, and Tech Tips (third session)
+
+No prices, services, booking, payment, or contact-form behavior was changed.
+
+- **Media Library** (Admin > Website): upload JPG, PNG and WebP images (15 MB max, validated by file contents), a thumbnail gallery, search and filters, renaming, alt text, descriptions, source and license fields, cropping, focal points, replacing a photo everywhere it is used, usage tracking, and deleting unused images (blocked while in use).
+- **Image processing** (sharp): photos are auto-rotated and all EXIF metadata, including GPS, is stripped. Masters are capped at 3200 px. Responsive WebP and JPEG variants are generated on demand and cached in storage. Version-stamped URLs are cached for a year and never go stale; layout-stable `<picture>` markup has lazy loading below the fold and high priority for hero images.
+- **Storage**: S3-compatible object storage (Railway Buckets, R2, S3) in production. Production without bucket settings refuses uploads. Development uses a local folder. Verified against an S3-compatible server (s3rver).
+- **Page Images**: six slots (homepage hero and secondary, Senior Living hero and partnership, About owner, Services featured). Each has library selection or upload, crop locked to the slot's shape, desktop and mobile focal points, alt text, a live desktop and phone preview, publish, and remove (text-only layout restored).
+- **About page**: optional "Meet the owner" section driven by new Settings fields (owner name, title, introduction). Nothing is invented.
+- **Tech Tips**: public directory (featured, recent, categories, search, pagination), category pages, article pages (breadcrumbs, featured image, date, reading time, related tips, sharing, "Still Need a Hand?" call to action), Article and Breadcrumb structured data, canonical URLs and Open Graph tags, sitemap entries, and "Tech Tips" in the navigation. The homepage shows the 3 latest tips (hidden when none are published).
+- **Article management**: TipTap rich-text editor with Media Library images, drafts, publish, schedule, unpublish, duplicate, delete, featured flag, SEO fields, categories, bulk publish and unpublish, and admin-only previews. Content is sanitized on save. Scheduled articles go live at their time even if the worker is late; the worker then marks them published.
+- **20 articles** were written and seeded as drafts (730–863 words each). The seed is idempotent and preserves edits.
+- **Photography**: stock-photo sites were blocked by the build environment's network policy, so no stock photos were added. All slots are unassigned and articles use a branded placeholder until photos are uploaded.
+- **Migration**: `website_media_and_tech_tips` (new tables MediaAsset, PageImage, ArticleCategory, Article; additive only).
+- **Tests**: 241 unit and integration tests and 27 end-to-end tests (including accessibility scans of the new pages) pass, and the production build passes with no warnings.

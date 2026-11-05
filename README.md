@@ -92,6 +92,47 @@ Every environment variable is documented in `.env.example`. Integrations are opt
 - **Maps:** set `GOOGLE_MAPS_API_KEY` (Geocoding API and Distance Matrix API enabled) or `MAPBOX_ACCESS_TOKEN`. Without one, dispatch runs in a clearly labelled manual mode.
 - **Business details** (phone, email, address, hours, booking rules, cancellation policy, tax, notifications, data retention) are edited in Admin > Settings. No phone number or address is invented; public pages hide contact details until you enter them.
 
+## Website photos and Tech Tips
+
+Everything is managed from **Admin > Website** (owner and admin accounts only). Changes appear on the live site immediately, with no code change or redeploy.
+
+### Image storage (needed before uploading in production)
+
+Uploaded photos are stored in S3-compatible object storage, not on the server's disk, because Railway's application filesystem is temporary. Photo details (names, alt text, crops, and where each photo is used) are stored in the database.
+
+On Railway:
+1. In your project, add a **Bucket** (Railway's S3-compatible storage). Cloudflare R2 or AWS S3 also work.
+2. On the **web** service, set `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` from the bucket's credentials (Railway reference variables work well). The bucket can stay private: the app serves images itself.
+3. Redeploy. Admin > Website > Media Library shows a warning if storage is not configured.
+4. If uploads fail with an addressing error, set `S3_FORCE_PATH_STYLE=true`.
+
+In development, without S3 settings, images are saved to `.data/media` (git-ignored).
+
+How images are processed: only JPG, PNG and WebP up to 15 MB are accepted, checked by reading the file itself. Photos are rotated upright, then all hidden metadata, including GPS location, is removed. Very large photos are reduced to 3200 px. Visitors receive resized WebP or JPEG versions (320 to 2000 px wide), created on first request and cached in the bucket. Every change to a photo produces new image addresses, so nobody sees an outdated image, and browsers can cache images for a year.
+
+### Changing website photographs
+
+1. **Admin > Website > Page Images** lists every photo spot: homepage hero and secondary photo, Senior Living hero and partnership photo, About owner photo, and Services featured photo. Each shows the recommended size and shape.
+2. Choose a spot, then **Choose or upload a photo** (pick from the Media Library or upload a new one).
+3. Drag and zoom to crop, then click the most important part of the photo for the **desktop** and **mobile** focal points.
+4. Add alt text (a short description for screen reader users), check the desktop and phone **preview**, and click **Save and publish**.
+5. **Remove photo** restores the page's original text-only layout.
+
+The About page's "Meet the owner" section uses your name and introduction from **Admin > Settings > Business information**. If you only add a photo, it appears beside "Our mission".
+
+**Admin > Website > Media Library** lists all uploaded photos. From there you can upload, search, filter (in use, not used, missing alt text), rename, edit alt text and descriptions, record the source and license, crop, set a focal point, replace a photo everywhere it is used, see where it is used, and delete unused photos.
+
+### Writing and publishing Tech Tips
+
+- **Admin > Website > Tech Tips** lists articles with search and filters. Tick articles and use **Publish** or **Unpublish** to change many at once.
+- **New article** (or click a title) opens the editor: title, URL slug, summary, rich-text content (headings, bold, italic, lists, links, quotes, images from the Media Library), category, featured flag, featured image with alt text, and SEO title and meta description.
+- **Save draft** keeps it private. **Publish now** makes it live. To schedule, pick a date and time (Eastern) and click **Schedule**; the article appears automatically at that time. **Unpublish** hides it again.
+- **Preview saved version** shows the article exactly as visitors will see it, including drafts. Only signed-in admins can open previews.
+- **Duplicate** creates a draft copy, and **Delete** removes an article permanently.
+- Categories are edited under **Tech Tips > Categories**.
+
+The 20 starter articles are seeded as **drafts** for your review. Re-running the seed never duplicates them and never overwrites your edits. When you have reviewed them, select them in the list and use **Publish**. Articles without a featured image show a branded placeholder until you add one.
+
 ## Deploying to Railway
 
 The repo includes a `Dockerfile` and `railway.json`. Nothing has been deployed yet.

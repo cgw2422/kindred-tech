@@ -137,10 +137,15 @@ let cached: ObjectStore | null | undefined;
 export function getStorage(): ObjectStore | null {
   if (testStore) return testStore;
   if (cached !== undefined) return cached;
-  if (env.s3) cached = new S3Store(env.s3);
-  else if (!env.isProduction) cached = new LocalStore(path.resolve(process.env.MEDIA_LOCAL_DIR ?? ".data/media"));
-  else cached = null;
+  cached = resolveStorage({ s3: env.s3, isProduction: env.isProduction });
   return cached;
+}
+
+/** Storage choice: S3 when configured; local folder only outside production; otherwise none. */
+export function resolveStorage(opts: { s3: typeof env.s3; isProduction: boolean }): ObjectStore | null {
+  if (opts.s3) return new S3Store(opts.s3);
+  if (!opts.isProduction) return new LocalStore(path.join(/* turbopackIgnore: true */ process.cwd(), process.env.MEDIA_LOCAL_DIR ?? ".data/media"));
+  return null;
 }
 
 export function requireStorage(): ObjectStore {

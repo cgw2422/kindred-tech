@@ -44,28 +44,28 @@ export function SiteHeader({ phone }: { phone?: string }) {
         <Link href="/" className="no-underline">
           <Logo />
         </Link>
-        <nav aria-label="Main" className="hidden lg:block">
+        <nav aria-label="Main" className="hidden xl:block">
           <ul className="flex items-center gap-1">
             {MAIN_NAV.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="rounded-md px-3 py-2 font-semibold text-navy no-underline hover:bg-navy-50">
+                <Link href={item.href} className="rounded-md px-2.5 py-2 font-semibold whitespace-nowrap text-navy no-underline hover:bg-navy-50">
                   {item.label}
                 </Link>
               </li>
             ))}
             <li>
-              <Link href="/login" className="rounded-md px-3 py-2 font-semibold text-navy no-underline hover:bg-navy-50">
+              <Link href="/login" className="rounded-md px-2.5 py-2 font-semibold whitespace-nowrap text-navy no-underline hover:bg-navy-50">
                 Sign In
               </Link>
             </li>
             <li className="ml-2">
-              <Link href="/schedule" className={buttonClass("primary", "md")}>
+              <Link href="/schedule" className={buttonClass("primary", "md", "whitespace-nowrap")}>
                 Schedule a Visit
               </Link>
             </li>
           </ul>
         </nav>
-        <details className="relative lg:hidden">
+        <details className="relative xl:hidden">
           <summary className={buttonClass("outline", "md", "list-none cursor-pointer [&::-webkit-details-marker]:hidden")}>Menu</summary>
           <nav aria-label="Mobile" className="absolute right-0 z-40 mt-2 w-72 rounded-lg border border-line bg-white p-3 shadow-lg">
             <ul className="flex flex-col">

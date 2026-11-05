@@ -12,7 +12,7 @@ async function scan(page: import("@playwright/test").Page, path: string) {
 
 test("public pages have no automatically detectable WCAG A/AA violations", async ({ page }) => {
   const all: string[] = [];
-  for (const path of ["/", "/services", "/services/subscription-review-savings", "/services/technology-checkup", "/senior-living", "/pricing", "/schedule", "/contact", "/faq", "/login", "/service-areas", "/about"]) {
+  for (const path of ["/", "/services", "/services/subscription-review-savings", "/services/technology-checkup", "/senior-living", "/pricing", "/schedule", "/contact", "/faq", "/login", "/service-areas", "/about", "/tech-tips", "/tech-tips/category/online-safety"]) {
     all.push(...(await scan(page, path)));
   }
   expect(all).toEqual([]);
@@ -21,7 +21,7 @@ test("public pages have no automatically detectable WCAG A/AA violations", async
 test("signed-in areas have no automatically detectable WCAG A/AA violations", async ({ page }) => {
   const all: string[] = [];
   await login(page, "owner@example.com");
-  for (const path of ["/admin", "/admin/appointments", "/admin/calendar", "/admin/customers", "/admin/dispatch", "/admin/reports", "/admin/invoices", "/admin/facilities", "/admin/settings", "/tech"]) {
+  for (const path of ["/admin", "/admin/appointments", "/admin/calendar", "/admin/customers", "/admin/dispatch", "/admin/reports", "/admin/invoices", "/admin/facilities", "/admin/settings", "/admin/media", "/admin/page-images", "/admin/page-images/home-hero", "/admin/tech-tips", "/admin/tech-tips/categories", "/tech"]) {
     all.push(...(await scan(page, path)));
   }
   expect(all).toEqual([]);

@@ -45,7 +45,9 @@ export default async function AboutPage() {
   const [business, images] = await Promise.all([getSettings("business"), getPageImages(["about-owner"])]);
   const ownerPhoto = images["about-owner"];
   const ownerParagraphs = business.ownerBio.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-  const showOwner = Boolean(ownerPhoto || business.ownerName || ownerParagraphs.length);
+  // "Meet the owner" needs words from the owner; a photo alone is shown beside the mission instead.
+  const showOwner = Boolean(business.ownerName || ownerParagraphs.length);
+  const missionPhoto = !showOwner ? ownerPhoto : undefined;
   return (
     <>
       <PageIntro eyebrow="About us" title={business.tagline || "Modern Technology. Old-Fashioned Service."}>
@@ -56,6 +58,7 @@ export default async function AboutPage() {
       </PageIntro>
 
       <Section id="mission" title="Our mission">
+        <div className={missionPhoto ? "grid gap-8 md:grid-cols-[1fr_300px] md:items-start" : ""}>
         <div className="max-w-3xl space-y-4 text-lg">
           <p>
             Our mission is to help seniors and their families use technology with confidence through patient, respectful, in-person help. We want every visit to end
@@ -65,6 +68,8 @@ export default async function AboutPage() {
             We believe the best technology help looks a lot like old-fashioned service: showing up when we say we will, listening carefully, explaining clearly, charging
             fairly, and treating your home with respect.
           </p>
+        </div>
+        {missionPhoto && <SlotImage slotKey="about-owner" image={missionPhoto} className="mx-auto max-w-[300px] md:order-none" />}
         </div>
       </Section>
 

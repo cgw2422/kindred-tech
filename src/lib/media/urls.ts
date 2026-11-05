@@ -11,6 +11,11 @@ export function assetTag(version: number) {
   return `a${version}`;
 }
 
+/** Full image without any crop (used by the admin crop editors). */
+export function originalTag(version: number) {
+  return `o${version}`;
+}
+
 export function slotTag(slotKey: string, slotVersion: number) {
   return `p${slotVersion}-${slotKey}`;
 }
@@ -30,9 +35,11 @@ export function fallbackWidth(sourceWidth: number) {
   return RESPONSIVE_WIDTHS.filter((w) => w <= Math.max(sourceWidth, 320)).find((w) => w >= 960) ?? RESPONSIVE_WIDTHS.filter((w) => w <= Math.max(sourceWidth, 320)).pop() ?? 320;
 }
 
-export function parseTag(tag: string): { kind: "asset"; version: number } | { kind: "slot"; version: number; slotKey: string } | null {
+export function parseTag(tag: string): { kind: "asset"; version: number } | { kind: "original"; version: number } | { kind: "slot"; version: number; slotKey: string } | null {
   let m = /^a(\d{1,9})$/.exec(tag);
   if (m) return { kind: "asset", version: Number(m[1]) };
+  m = /^o(\d{1,9})$/.exec(tag);
+  if (m) return { kind: "original", version: Number(m[1]) };
   m = /^p(\d{1,9})-([a-z0-9-]{1,60})$/.exec(tag);
   if (m) return { kind: "slot", version: Number(m[1]), slotKey: m[2] };
   return null;

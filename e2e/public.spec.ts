@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const PAGES = [
-  "/", "/services", "/services/computer-laptop-support", "/services/smartphone-tablet-help", "/services/wifi-internet-support",
+  "/", "/tech-tips", "/services", "/services/computer-laptop-support", "/services/smartphone-tablet-help", "/services/wifi-internet-support",
   "/services/smart-tv-streaming-setup", "/services/technology-lessons", "/services/online-safety-scam-protection",
   "/services/subscription-review-savings", "/services/technology-checkup", "/senior-living", "/pricing", "/about",
   "/service-areas", "/schedule", "/contact", "/faq", "/privacy", "/terms", "/accessibility",
