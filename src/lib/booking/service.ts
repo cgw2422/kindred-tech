@@ -2,7 +2,7 @@ import { queueTemplatedEmail } from "../email/send";
 import { env } from "../env";
 import type { AppointmentStatus, Prisma, Role } from "@prisma/client";
 import { prisma, type Tx } from "../db";
-import { nextCounter, randomCode, randomToken, sha256 } from "../codes";
+import { randomCode, randomToken, sha256 } from "../codes";
 import { getSettings } from "../settings";
 import { addDaysToKey, formatDate, formatTime, toDateKey, startOfDayUtc, zonedParts } from "../time";
 import { estimatePrice } from "../pricing";
@@ -721,10 +721,4 @@ export async function findAppointmentByManageToken(token: string) {
     where: { manageTokenHash: sha256(token) },
     include: { service: true, customer: true, address: true },
   });
-}
-
-export async function nextInvoiceNumber(tx: Tx | typeof prisma = prisma) {
-  const year = new Date().getFullYear();
-  const n = await nextCounter(`invoice-${year}`, tx);
-  return `KTS-${year}-${String(n).padStart(4, "0")}`;
 }

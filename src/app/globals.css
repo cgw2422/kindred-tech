@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #10375b;
+  --color-navy-dark: #071d35;
+  --color-navy-50: #eef3f8;
+  --color-navy-100: #d7e2ee;
+  --color-green: #477c32;
+  --color-green-dark: #36601f;
+  --color-green-light: #edf4e8;
+  --color-soft: #f7f7f3;
+  --color-body: #414b55;
+  --color-line: #d9ded6;
+  --color-danger: #a12a2a;
+  --color-danger-light: #fbeaea;
+  --color-warn: #8a5a00;
+  --color-warn-light: #fdf3dc;
+
+  --font-heading: var(--font-libre), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-open-sans), "Segoe UI", Arial, sans-serif;
+
+  --container-site: 1150px;
+}
+
+@layer base {
+  html {
+    font-size: 112.5%; /* 18px base for readability */
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-soft text-body font-sans leading-relaxed antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading text-navy;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  a {
+    @apply text-navy underline-offset-4;
+  }
+  :focus-visible {
+    outline: 3px solid #477c32;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  ::selection {
+    background: #edf4e8;
+    color: #071d35;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .container-site {
+    @apply mx-auto w-full px-5 md:px-8;
+    max-width: var(--container-site);
+  }
+  .prose-kindred p {
+    @apply mb-4;
+  }
+  .prose-kindred h2 {
+    @apply mt-10 mb-3 text-2xl;
+  }
+  .prose-kindred h3 {
+    @apply mt-6 mb-2 text-xl;
+  }
+  .prose-kindred ul {
+    @apply mb-4 list-disc pl-6 space-y-1;
+  }
+  .prose-kindred ol {
+    @apply mb-4 list-decimal pl-6 space-y-1;
+  }
+  .prose-kindred a {
+    @apply underline;
+  }
+  .skip-link {
+    @apply sr-only;
+  }
+  .skip-link:focus {
+    @apply not-sr-only fixed top-2 left-2 z-50 rounded bg-navy px-4 py-2 text-white;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
