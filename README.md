@@ -101,9 +101,10 @@ The repo includes a `Dockerfile` and `railway.json`. Nothing has been deployed y
    - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}`
    - `APP_URL` = your public URL (for example `https://kindredtechsupport.com`)
    - `SEED_OWNER_EMAIL`, `SEED_OWNER_NAME`, `SEED_OWNER_PASSWORD` (a strong password)
+   - `SEED_ON_START` = `true` for the first deploy (see step 4)
    - Optional integrations from `.env.example`
 3. Deploy. The container runs `prisma migrate deploy` before starting, and the health check is `/api/health`. Railway's Postgres user can create the `btree_gist` extension.
-4. Seed once from your machine or a Railway shell: `npm run db:seed`. This creates the owner account and reference data; sample data is never created in production.
+4. Seed the database. The easiest way needs no console: set `SEED_ON_START=true` on the web service and redeploy. The container runs the seed before starting, creating the owner account and reference data (sample data is never created in production). The seed is safe to repeat, but you can remove the variable once you have signed in. Alternatives: `railway run npm run db:seed` from your computer with the Railway CLI, or `npm run db:seed` in the Railway console.
 5. Add a second service from the same repo for the **worker**, with the same variables and start command `npm run worker`. Without it, emails, reminders, and renewal notices stay queued. (Alternative: set `CRON_SECRET` and have a scheduler POST to `/api/cron` every few minutes with `Authorization: Bearer <CRON_SECRET>`.)
 6. Attach your domain and set `APP_URL` to match. Then configure the Stripe webhook and Resend sender domain, and switch `EMAIL_DELIVERY_MODE` to `allowlist` for testing, and to `live` when ready.
 
@@ -129,3 +130,10 @@ src/worker.ts           background worker entry point
 tests/                  Vitest unit and integration tests
 e2e/                    Playwright end-to-end and accessibility tests
 ```
+
+### Troubleshooting Railway
+
+- **Console shows "WebSocket connection failed" / "Disconnected":** the console can only attach to a deployment that is running. Open **Deployments**, select the latest deployment, and read its **Deploy Logs**. If the container is crashing, the console cannot connect.
+- **`P1001: Can't reach database server`:** `DATABASE_URL` is missing or wrong. Set it to `${{Postgres.DATABASE_URL}}` (reference variable) on the web and worker services, then redeploy.
+- **Health check fails:** the app listens on Railway's `PORT` automatically; make sure no custom start command or port override was added in the service settings.
+- **Seeding without the console:** use `SEED_ON_START=true` (step 4).

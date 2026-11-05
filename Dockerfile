@@ -20,5 +20,7 @@ RUN groupadd --system app && useradd --system --gid app --home /app app
 COPY --from=build --chown=app:app /app ./
 USER app
 EXPOSE 3000
-# Web: apply migrations, then serve. The worker service overrides this with `npm run worker`.
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
+# Web: apply migrations, optionally seed (SEED_ON_START=true), then serve.
+# The seed is idempotent and never creates sample data in production.
+# The worker service overrides this with `npm run worker`.
+CMD ["sh", "-c", "npx prisma migrate deploy && if [ \"$SEED_ON_START\" = \"true\" ]; then npm run db:seed; fi && npm run start"]
