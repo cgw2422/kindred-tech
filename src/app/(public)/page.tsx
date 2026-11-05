@@ -10,6 +10,7 @@ import { REGION_LINE } from "@/lib/community";
 import { getPageImages } from "@/lib/media/service";
 import { latestArticles } from "@/lib/articles/service";
 import { SlotImage } from "@/components/media/SlotImage";
+import { CallButton } from "@/components/site/CallButton";
 import { ArticleCard } from "./tech-tips/_components/ArticleCard";
 import { joinList } from "./_lib/format";
 import { localBusinessJsonLd, pageMetadata } from "./_lib/seo";
@@ -82,17 +83,19 @@ export default async function HomePage() {
               <ButtonLink href="/schedule" size="lg">
                 Schedule a Visit
               </ButtonLink>
-              <ButtonLink href="/services" variant="outline" size="lg">
-                Explore Our Services
-              </ButtonLink>
+              {business.phone ? (
+                <CallButton phone={business.phone} />
+              ) : (
+                <ButtonLink href="/services" variant="outline" size="lg">
+                  Explore Our Services
+                </ButtonLink>
+              )}
             </div>
             {business.phone && (
               <p className="mt-5 text-lg">
-                Prefer to talk to a person? Call{" "}
-                <a href={`tel:${business.phone.replace(/[^\d+]/g, "")}`} className="font-semibold">
-                  {business.phone}
-                </a>
-                .
+                <Link href="/services" className="font-semibold">
+                  Explore Our Services
+                </Link>
               </p>
             )}
           </div>
@@ -312,13 +315,33 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* Our story (short) */}
+      <section aria-labelledby="story-title" className="border-t border-line bg-white">
+        <div className="container-site py-14 md:py-16">
+          <div className="measure">
+            <h2 id="story-title" className="text-2xl md:text-3xl">
+              A Little More Than Technology Support
+            </h2>
+            <p className="mt-4 text-lg">
+              Kindred was inspired by seeing older adults in our own church community struggle with everyday technology. We believe technology assistance should come
+              with patience, understanding, and a willingness to explain things at your pace.
+            </p>
+            <p className="mt-5">
+              <Link href="/about#why-title" className="inline-flex min-h-[44px] items-center text-lg font-semibold">
+                Learn More About Kindred
+              </Link>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Promises */}
       <section aria-labelledby="promises-title">
         <div className="container-site py-14 md:py-16">
           <h2 id="promises-title" className="text-2xl md:text-3xl">
             What you can expect from us
           </h2>
-          <p className="mt-3 max-w-3xl text-lg">Technology help should feel respectful and trustworthy. These are the standards we hold ourselves to on every visit.</p>
+          <p className="mt-3 measure text-lg">Technology help should feel respectful and trustworthy. These are the standards we hold ourselves to on every visit.</p>
           <div className={secondary ? "mt-8 grid gap-8 lg:grid-cols-[minmax(0,380px)_1fr] lg:items-start" : "mt-8"}>
             {secondary && <SlotImage slotKey="home-secondary" image={secondary} className="lg:sticky lg:top-6" />}
             <ul className={`grid gap-5 sm:grid-cols-2 ${secondary ? "" : "lg:grid-cols-3"}`}>

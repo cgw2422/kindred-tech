@@ -127,7 +127,7 @@ export function SlotPicker({
             >
               <span className="block text-sm">{l.weekday}</span>
               <span className="block text-lg font-bold">{l.day}</span>
-              <span className="block text-xs">{l.month}</span>
+              <span className="block text-sm">{l.month}</span>
             </button>
           );
         })}

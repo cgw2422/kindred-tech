@@ -1,16 +1,18 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui";
+import { getSettings } from "@/lib/settings";
+import { CallButton } from "@/components/site/CallButton";
 
 /** Top-of-page introduction used on inner marketing pages. */
 export function PageIntro({ eyebrow, title, children, actions, media }: { eyebrow?: string; title: string; children?: ReactNode; actions?: ReactNode; media?: ReactNode }) {
   const text = (
     <div>
       {eyebrow && <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-green-dark">{eyebrow}</p>}
-      <h1 id="page-title" className="max-w-3xl text-3xl md:text-[2.6rem]">
+      <h1 id="page-title" className="measure text-3xl md:text-[2.6rem]">
         {title}
       </h1>
-      {children && <div className="mt-4 max-w-3xl text-lg md:text-xl">{children}</div>}
+      {children && <div className="mt-4 measure text-lg md:text-xl">{children}</div>}
       {actions && <div className="mt-7 flex flex-wrap gap-3">{actions}</div>}
     </div>
   );
@@ -36,7 +38,7 @@ export function Section({ id, title, intro, children, tone = "soft", className =
         <h2 id={id} className="text-2xl md:text-3xl">
           {title}
         </h2>
-        {intro && <div className="mt-3 max-w-3xl text-lg">{intro}</div>}
+        {intro && <div className="mt-3 measure text-lg">{intro}</div>}
         <div className="mt-8">{children}</div>
       </div>
     </section>
@@ -59,12 +61,13 @@ export function CheckList({ items, columns = 1 }: { items: ReactNode[]; columns?
   );
 }
 
-/** Closing call to action band. */
-export function CtaBand({ title = "Ready for some friendly help?", children, scheduleHref = "/schedule", secondary }: { title?: string; children?: ReactNode; scheduleHref?: string; secondary?: { href: string; label: string } }) {
+/** Closing call to action band. Shows "Call Kindred" when a business phone number is configured. */
+export async function CtaBand({ title = "Ready for some friendly help?", children, scheduleHref = "/schedule", secondary }: { title?: string; children?: ReactNode; scheduleHref?: string; secondary?: { href: string; label: string } }) {
+  const { phone } = await getSettings("business");
   return (
     <section aria-labelledby="cta-title" className="bg-navy text-white">
-      <div className="container-site flex flex-col gap-6 py-12 md:flex-row md:items-center md:justify-between md:py-14">
-        <div className="max-w-2xl">
+      <div className="container-site flex flex-col gap-6 py-12 md:py-14 lg:flex-row lg:items-center lg:justify-between">
+        <div className="measure">
           <h2 id="cta-title" className="text-2xl text-white md:text-3xl">
             {title}
           </h2>
@@ -74,13 +77,17 @@ export function CtaBand({ title = "Ready for some friendly help?", children, sch
           <ButtonLink href={scheduleHref} variant="light" size="lg">
             Schedule a Visit
           </ButtonLink>
-          {secondary && (
-            <Link
-              href={secondary.href}
-              className="inline-flex min-h-[52px] items-center justify-center rounded-md border-2 border-white px-7 py-3.5 text-lg font-semibold text-white no-underline transition-colors hover:bg-white/10"
-            >
-              {secondary.label}
-            </Link>
+          {phone ? (
+            <CallButton phone={phone} variant="light" />
+          ) : (
+            secondary && (
+              <Link
+                href={secondary.href}
+                className="inline-flex min-h-[52px] items-center justify-center rounded-md border-2 border-white px-7 py-3.5 text-lg font-semibold text-white no-underline transition-colors hover:bg-white/10"
+              >
+                {secondary.label}
+              </Link>
+            )
           )}
         </div>
       </div>

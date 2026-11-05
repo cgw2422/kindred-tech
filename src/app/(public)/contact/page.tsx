@@ -4,6 +4,7 @@ import { getSettings } from "@/lib/settings";
 import { PageIntro } from "../_components/Blocks";
 import { telHref } from "../_lib/format";
 import { pageMetadata } from "../_lib/seo";
+import { CallButton } from "@/components/site/CallButton";
 import { ContactForm } from "./ContactForm";
 import { CONTACT_TOPICS } from "./schema";
 
@@ -73,6 +74,11 @@ export default async function ContactPage({ searchParams }: Props) {
             <p className="mt-2">
               You can <Link href="/schedule">schedule a visit online</Link>. Senior living communities can <Link href="/senior-living#inquiry">request a partnership proposal</Link>.
             </p>
+            {business.phone && (
+              <div className="mt-4">
+                <CallButton phone={business.phone} size="md" />
+              </div>
+            )}
           </div>
           <div className="mt-6 rounded-lg border border-line bg-white p-5">
             <h3 className="text-lg">A note about your safety</h3>

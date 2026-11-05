@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Libre_Baskerville, Open_Sans } from "next/font/google";
 import { env } from "@/lib/env";
 import "./globals.css";
+import { PREFERENCES_BOOT_SCRIPT } from "@/components/a11y/preferences";
 
 const libre = Libre_Baskerville({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-libre", display: "swap" });
 const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans", display: "swap" });
@@ -28,7 +29,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${libre.variable} ${openSans.variable}`}>
+    <html lang="en" className={`${libre.variable} ${openSans.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Applies saved text-size and contrast preferences before the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: PREFERENCES_BOOT_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -55,11 +55,14 @@ test("guest can book an appointment end to end and manage it", async ({ page }) 
   await expect(page.locator("h1")).toHaveText("Your appointment");
   await page.getByRole("button", { name: "Cancel appointment" }).click();
   await page.getByRole("button", { name: "Yes, cancel my appointment" }).click();
-  await expect(page.locator('[role=status]').first()).toContainText("canceled");
+  await expect(page.locator('main [role=status]').first()).toContainText("canceled");
 });
 
 test("booking wizard validates required fields", async ({ page }) => {
   await page.goto("/schedule");
-  await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page.locator('[role=alert]:not(#__next-route-announcer__)')).toContainText("Please choose a service");
+  // Retry until the page is interactive (hydrated).
+  await expect(async () => {
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(page.locator('[role=alert]:not(#__next-route-announcer__)')).toContainText("Please choose a service", { timeout: 1000 });
+  }).toPass({ timeout: 20000 });
 });

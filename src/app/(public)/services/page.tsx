@@ -66,8 +66,8 @@ export default async function ServicesPage() {
             const scheduleHref = primary?.isBookableOnline ? `/schedule?service=${encodeURIComponent(primary.slug)}` : "/schedule";
             const headingId = `topic-${p.slug}`;
             return (
-              <li key={p.slug} className="flex">
-                <article aria-labelledby={headingId} className="flex w-full flex-col rounded-lg border border-line bg-white p-6">
+              <li key={p.slug} className="flex min-w-0">
+                <article aria-labelledby={headingId} className="flex w-full min-w-0 flex-col rounded-lg border border-line bg-white p-6">
                   <h3 id={headingId} className="text-xl">
                     {p.name}
                   </h3>
@@ -79,7 +79,7 @@ export default async function ServicesPage() {
                     ))}
                   </ul>
                   {primary && (
-                    <dl className="mt-5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-md bg-soft p-4">
+                    <dl className="mt-5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 rounded-md bg-soft p-4">
                       <dt className="font-semibold text-navy">Appointment</dt>
                       <dd>{primary.name}</dd>
                       <dt className="font-semibold text-navy">Length</dt>
@@ -115,8 +115,8 @@ export default async function ServicesPage() {
               const ext = extensionLabel(s);
               const headingId = `svc-${s.slug}`;
               return (
-                <li key={s.id} className="flex">
-                  <article aria-labelledby={headingId} className="flex w-full flex-col rounded-lg border border-line bg-soft p-5 md:p-6">
+                <li key={s.id} className="flex min-w-0">
+                  <article aria-labelledby={headingId} className="flex w-full min-w-0 flex-col rounded-lg border border-line bg-soft p-5 md:p-6">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                       <h3 id={headingId} className="text-xl">
                         {s.name}

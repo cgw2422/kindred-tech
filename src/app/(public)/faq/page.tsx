@@ -34,7 +34,7 @@ export default function FaqPage() {
             ))}
           </ul>
         </nav>
-        <div className="max-w-3xl space-y-12">
+        <div className="measure space-y-12">
           {FAQ_GROUPS.map((g) => (
             <section key={g.id} id={g.id} aria-labelledby={`${g.id}-title`} className="scroll-mt-4">
               <h2 id={`${g.id}-title`} className="mb-5 text-2xl md:text-3xl">

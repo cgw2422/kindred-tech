@@ -41,25 +41,59 @@ const VALUES = [
   },
 ];
 
+const STORY = [
+  "Through my involvement at church, I've seen firsthand how frustrating everyday technology can become for older adults.",
+  "Something as simple as using a smartphone, joining a video call, setting up a television, or navigating an unfamiliar app can turn into an overwhelming experience when there's nobody available to help.",
+  "What stood out to me wasn't just the technology problems. It was how often people simply needed someone willing to sit down, listen, and explain things patiently without making them feel rushed or embarrassed.",
+  "That experience helped shape the idea behind Kindred Tech Support.",
+  "I believe everyone deserves to feel comfortable using the technology that's become part of everyday life, regardless of their age or experience.",
+  "Kindred is built around that belief: providing knowledgeable, patient, and respectful technology assistance with a personal touch.",
+];
+
 export default async function AboutPage() {
   const [business, images] = await Promise.all([getSettings("business"), getPageImages(["about-owner"])]);
+  // Optional real owner photo, uploaded by the owner in Admin > Website > Page Images.
   const ownerPhoto = images["about-owner"];
   const ownerParagraphs = business.ownerBio.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-  // "Meet the owner" needs words from the owner; a photo alone is shown beside the mission instead.
-  const showOwner = Boolean(business.ownerName || ownerParagraphs.length);
-  const missionPhoto = !showOwner ? ownerPhoto : undefined;
+  const tagline = business.tagline || "Modern Technology. Old-Fashioned Service.";
   return (
     <>
-      <PageIntro eyebrow="About us" title={business.tagline || "Modern Technology. Old-Fashioned Service."}>
+      <PageIntro eyebrow="About us" title={`About ${business.name}`}>
         <p>
           {business.name} exists for a simple reason: technology should make life easier, not more stressful. Too many people are left on their own with a confusing
           phone, a computer full of pop-ups, or a television with three remotes. We come to you, sit down beside you, and help.
         </p>
       </PageIntro>
 
+      <section aria-labelledby="why-title" className="border-b border-line bg-white">
+        <div className={`container-site grid gap-10 py-12 md:py-16 ${ownerPhoto ? "md:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)] md:items-start" : ""}`}>
+          <div className="measure">
+            <h2 id="why-title" className="text-2xl md:text-3xl">
+              Why Kindred Exists
+            </h2>
+            <div className="mt-5 space-y-4 text-lg">
+              {STORY.map((p) => (
+                <p key={p}>{p}</p>
+              ))}
+            </div>
+            {business.ownerName && (
+              <p className="mt-6 text-lg">
+                <span className="font-semibold text-navy">{business.ownerName}</span>
+                {business.ownerTitle && <span>, {business.ownerTitle}</span>}
+              </p>
+            )}
+            <p className="mt-8 border-l-4 border-green pl-4 font-heading text-xl text-navy md:text-2xl">{tagline}</p>
+          </div>
+          {ownerPhoto && (
+            <div className="mx-auto w-full max-w-[20rem]">
+              <SlotImage slotKey="about-owner" image={ownerPhoto} />
+            </div>
+          )}
+        </div>
+      </section>
+
       <Section id="mission" title="Our mission">
-        <div className={missionPhoto ? "grid gap-8 md:grid-cols-[1fr_300px] md:items-start" : ""}>
-        <div className="max-w-3xl space-y-4 text-lg">
+        <div className="measure space-y-4 text-lg">
           <p>
             Our mission is to help seniors and their families use technology with confidence through patient, respectful, in-person help. We want every visit to end
             with the problem solved and with you feeling more comfortable than when we started.
@@ -69,15 +103,12 @@ export default async function AboutPage() {
             fairly, and treating your home with respect.
           </p>
         </div>
-        {missionPhoto && <SlotImage slotKey="about-owner" image={missionPhoto} className="mx-auto max-w-[300px] md:order-none" />}
-        </div>
       </Section>
 
-      {showOwner && (
+      {ownerParagraphs.length > 0 && (
         <section aria-labelledby="owner-title" className="border-y border-line bg-white">
-          <div className={`container-site grid gap-8 py-12 md:py-16 ${ownerPhoto ? "md:grid-cols-[320px_1fr] md:items-start" : ""}`}>
-            {ownerPhoto && <SlotImage slotKey="about-owner" image={ownerPhoto} className="mx-auto max-w-[320px] md:max-w-none" />}
-            <div className="max-w-3xl">
+          <div className="container-site py-12 md:py-16">
+            <div className="measure">
               <h2 id="owner-title" className="text-2xl md:text-3xl">
                 {business.ownerName ? `Meet ${business.ownerName}` : "Meet the owner"}
               </h2>
@@ -92,7 +123,7 @@ export default async function AboutPage() {
         </section>
       )}
 
-      <Section id="values" title="What we value" tone={showOwner ? "soft" : "white"}>
+      <Section id="values" title="What we value" tone={ownerParagraphs.length > 0 ? "soft" : "white"}>
         <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {VALUES.map((v) => (
             <li key={v.title} className="rounded-lg border border-line bg-soft p-6">
@@ -104,7 +135,7 @@ export default async function AboutPage() {
       </Section>
 
       <Section id="families" title="Working with families">
-        <div className="max-w-3xl space-y-4 text-lg">
+        <div className="measure space-y-4 text-lg">
           <p>
             Many of our appointments are arranged by sons, daughters, and other relatives who want to help a parent but cannot always be there. Family members can
             schedule visits and pay invoices.
@@ -120,7 +151,7 @@ export default async function AboutPage() {
       </Section>
 
       <Section id="communities" title="Serving our communities" tone="white">
-        <div className="max-w-3xl space-y-4 text-lg">
+        <div className="measure space-y-4 text-lg">
           <p>
             We are based in Tuscarawas County, Ohio, where we provide in-home visits, and we partner with senior living and 55+ communities across East-Central and
             Northeast Ohio to offer scheduled, on-site technology support for residents.

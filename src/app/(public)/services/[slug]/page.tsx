@@ -149,7 +149,7 @@ export default async function ServiceDetailPage({ params }: Props) {
       </div>
 
       <Section id="service-faq" title="Common questions" tone="white">
-        <div className="max-w-3xl">
+        <div className="measure">
           <FaqList items={page.faqs} />
           <p className="mt-6">
             <Link href="/faq" className="font-semibold">

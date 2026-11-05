@@ -48,8 +48,8 @@ export default async function PricingPage() {
             <ul className="grid gap-4 md:hidden">
               {individual.map((s) => (
                 <li key={s.id} className="rounded-lg border border-line bg-white p-5">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <h3 className="text-lg">{s.name}</h3>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <h3 className="min-w-0 text-lg">{s.name}</h3>
                     <p className="font-heading text-xl font-bold whitespace-nowrap text-green-dark">{servicePriceLabel(s)}</p>
                   </div>
                   <p className="mt-1">{s.shortDescription}</p>
@@ -157,7 +157,7 @@ export default async function PricingPage() {
       )}
 
       <Section id="travel-fees" title="Travel fees" tone="white">
-        <p className="max-w-3xl text-lg">{travelFeeSummary(areas.map((a) => a.travelFeeCents))}</p>
+        <p className="measure text-lg">{travelFeeSummary(areas.map((a) => a.travelFeeCents))}</p>
         {areas.some((a) => a.travelFeeCents > 0) && (
           <ul className="mt-4 space-y-1">
             {areas.map((a) => (
@@ -167,19 +167,19 @@ export default async function PricingPage() {
             ))}
           </ul>
         )}
-        <p className="mt-4 max-w-3xl">
+        <p className="mt-4 measure">
           Outside our regular area? <Link href="/contact?topic=service-area">Contact Kindred</Link> and we will let you know whether we can help. Remote support has no
           travel fee.
         </p>
       </Section>
 
       <Section id="cancellation" title="Cancellation and rescheduling">
-        <p className="max-w-3xl text-lg">{cancellation.policyText}</p>
+        <p className="measure text-lg">{cancellation.policyText}</p>
       </Section>
 
       <section id="communities" aria-labelledby="communities-title" className="scroll-mt-4 border-y border-line bg-white">
         <div className="container-site py-12 md:py-16">
-          <div className="max-w-3xl rounded-lg border-2 border-navy p-6 md:p-8">
+          <div className="measure rounded-lg border-2 border-navy p-6 md:p-8">
             <p className="text-sm font-semibold uppercase tracking-wider text-green-dark">Separate from residential pricing</p>
             <h2 id="communities-title" className="mt-1 text-2xl md:text-3xl">
               Senior living community partnerships

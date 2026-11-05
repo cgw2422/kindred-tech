@@ -31,7 +31,7 @@ export const PAGE_IMAGE_SLOTS: SlotDef[] = [
     aspectLabel: "4:3 (landscape)",
     mobileAspect: 4 / 3,
     recommended: "At least 1600 × 1200 pixels",
-    sizes: "(min-width: 1024px) 520px, 100vw",
+    sizes: "(min-width: 1024px) 50vw, 100vw",
     priority: true,
   },
   {
@@ -44,7 +44,7 @@ export const PAGE_IMAGE_SLOTS: SlotDef[] = [
     aspectLabel: "4:5 (portrait)",
     mobileAspect: 16 / 10,
     recommended: "At least 1200 × 1500 pixels",
-    sizes: "(min-width: 1024px) 380px, 100vw",
+    sizes: "(min-width: 1024px) 34vw, 100vw",
     priority: false,
   },
   {
@@ -57,7 +57,7 @@ export const PAGE_IMAGE_SLOTS: SlotDef[] = [
     aspectLabel: "4:3 (landscape)",
     mobileAspect: 4 / 3,
     recommended: "At least 1600 × 1200 pixels",
-    sizes: "(min-width: 1024px) 520px, 100vw",
+    sizes: "(min-width: 1024px) 50vw, 100vw",
     priority: true,
   },
   {
@@ -70,7 +70,7 @@ export const PAGE_IMAGE_SLOTS: SlotDef[] = [
     aspectLabel: "3:2 (landscape)",
     mobileAspect: 3 / 2,
     recommended: "At least 1500 × 1000 pixels",
-    sizes: "(min-width: 1024px) 440px, 100vw",
+    sizes: "(min-width: 1024px) 45vw, 100vw",
     priority: false,
   },
   {
@@ -78,12 +78,12 @@ export const PAGE_IMAGE_SLOTS: SlotDef[] = [
     page: "About",
     pagePath: "/about",
     label: "Owner photograph",
-    description: "Shown with the \"Meet the owner\" section. Without a photo, that section shows text only.",
+    description: "Shown beside \"Why Kindred Exists\" on the About page. Use a real photo of you only; without one, the story shows text only.",
     aspect: 4 / 5,
     aspectLabel: "4:5 (portrait)",
     mobileAspect: 4 / 5,
     recommended: "At least 1000 × 1250 pixels",
-    sizes: "(min-width: 768px) 320px, 80vw",
+    sizes: "(min-width: 768px) 30vw, 90vw",
     priority: false,
   },
   {
@@ -96,7 +96,7 @@ export const PAGE_IMAGE_SLOTS: SlotDef[] = [
     aspectLabel: "4:3 (landscape)",
     mobileAspect: 16 / 10,
     recommended: "At least 1600 × 1200 pixels",
-    sizes: "(min-width: 1024px) 480px, 100vw",
+    sizes: "(min-width: 1024px) 50vw, 100vw",
     priority: true,
   },
 ];

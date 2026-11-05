@@ -8,7 +8,7 @@ import { telHref } from "../_lib/format";
 export function LegalPage({ title, updated, template = false, children }: { title: string; updated?: string; template?: boolean; children: ReactNode }) {
   return (
     <div className="container-site py-12 md:py-16">
-      <article className="max-w-3xl">
+      <article className="measure">
         <h1 className="text-3xl md:text-4xl">{title}</h1>
         {updated && <p className="mt-2 text-sm">Last updated: {updated}</p>}
         {template && (

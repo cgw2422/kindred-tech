@@ -25,7 +25,7 @@ test("admin uploads a photo, publishes it to the homepage hero, then removes it"
   await page.getByRole("link", { name: new RegExp(name.replace(/-/g, " ")) }).click();
   await page.getByLabel(/^Alt text/).fill("A navy and green test graphic");
   await page.getByRole("button", { name: "Save details" }).click();
-  await expect(page.locator("[role=status]").first()).toContainText("saved");
+  await expect(page.locator("main [role=status]").first()).toContainText("saved");
 
   await page.goto("/admin/page-images/home-hero");
   await page.getByRole("button", { name: /Choose or upload a photo|Choose a different photo/ }).click();
@@ -34,7 +34,7 @@ test("admin uploads a photo, publishes it to the homepage hero, then removes it"
   await dialog.getByRole("button", { name: new RegExp(name.replace(/-/g, " ")) }).click();
   await expect(page.getByText("Desktop", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Save and publish" }).click();
-  await expect(page.locator("[role=status]").first()).toContainText("Published");
+  await expect(page.locator("main [role=status]").first()).toContainText("Published");
 
   await page.goto("/");
   const hero = page.locator("section[aria-labelledby=hero-title] picture img");
@@ -51,7 +51,7 @@ test("admin uploads a photo, publishes it to the homepage hero, then removes it"
   await page.goto("/admin/page-images/home-hero");
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Remove photo" }).click();
-  await expect(page.locator("[role=status]").first()).toContainText("Removed");
+  await expect(page.locator("main [role=status]").first()).toContainText("Removed");
   await page.goto("/");
   await expect(page.getByText("Technology Help With a Personal Touch.")).toBeVisible();
 
@@ -60,7 +60,7 @@ test("admin uploads a photo, publishes it to the homepage hero, then removes it"
   await page.getByRole("link", { name: new RegExp(name.replace(/-/g, " ")) }).click();
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Delete image" }).click();
-  await expect(page.locator("[role=status]").first()).toContainText("Image deleted");
+  await expect(page.locator("main [role=status]").first()).toContainText("Image deleted");
 });
 
 test("upload endpoint rejects anonymous users and non-images", async ({ page, request }) => {
@@ -86,7 +86,7 @@ test("drafts are private; bulk publish makes articles public; article page and h
   }
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Publish", exact: true }).click();
-  await expect(page.locator("[role=status]").first()).toContainText("2 articles published");
+  await expect(page.locator("main [role=status]").first()).toContainText("2 articles published");
 
   await page.goto("/tech-tips");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Helpful technology tips");
@@ -113,7 +113,7 @@ test("drafts are private; bulk publish makes articles public; article page and h
   await page.goto("/admin/tech-tips?q=iphone");
   const previewHref = await page.getByRole("link", { name: /Preview How to Make Text Bigger on Your iPhone/ }).getAttribute("href");
   await page.goto(previewHref!);
-  await expect(page.locator("[role=status]").first()).toContainText("This is a draft");
+  await expect(page.locator("main [role=status]").first()).toContainText("This is a draft");
   const anonPreview = await request.get(previewHref!, { maxRedirects: 0 });
   expect([302, 303, 307, 308]).toContain(anonPreview.status());
 
@@ -124,7 +124,7 @@ test("drafts are private; bulk publish makes articles public; article page and h
   }
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Unpublish" }).click();
-  await expect(page.locator("[role=status]").first()).toContainText("2 articles unpublished");
+  await expect(page.locator("main [role=status]").first()).toContainText("2 articles unpublished");
   expect((await request.get("/tech-tips/spot-a-fake-email")).status()).toBe(404);
 });
 
@@ -146,11 +146,11 @@ test("admin writes a new article in the rich-text editor, saves a draft, then de
   await page.getByLabel(/^Category/).selectOption({ label: "General Technology Tips" });
   await page.getByRole("button", { name: "Save draft" }).click();
   await page.waitForURL(/\/admin\/tech-tips\/[a-z0-9]+\?ok=/);
-  await expect(page.locator("[role=status]").first()).toContainText("Draft saved");
+  await expect(page.locator("main [role=status]").first()).toContainText("Draft saved");
   await expect(page.locator(".ProseMirror strong")).toHaveText("Bold words.");
   await expect(page.locator(".ProseMirror ul li")).toHaveText("First point");
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Delete" }).click();
-  await expect(page.locator("[role=status]").first()).toContainText("Article deleted");
+  await expect(page.locator("main [role=status]").first()).toContainText("Article deleted");
   await expect(page.locator(ALERT)).toHaveCount(0);
 });

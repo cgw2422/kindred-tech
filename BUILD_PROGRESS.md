@@ -79,3 +79,15 @@ No prices, services, booking, payment, or contact-form behavior was changed.
 - **Photography**: stock-photo sites were blocked by the build environment's network policy, so no stock photos were added. All slots are unassigned and articles use a branded placeholder until photos are uploaded.
 - **Migration**: `website_media_and_tech_tips` (new tables MediaAsset, PageImage, ArticleCategory, Article; additive only).
 - **Tests**: 241 unit and integration tests and 27 end-to-end tests (including accessibility scans of the new pages) pass, and the production build passes with no warnings.
+
+## Accessibility, readability, and our story (fourth session)
+
+No prices, services, booking rules, payments, partnerships, Tech Tips, Media Library, data, colors, or logo were changed.
+
+- **Readability**: body text is 18px by default with 1.65 line height. Secondary text is at least 16px. Paragraphs are capped at a comfortable line length (`.measure`, 68ch). Navigation links and tap targets are larger, focus outlines are stronger (3px), and the footer and card text are easier to read.
+- **Text size control** (A−, A, A+) in the header top bar: five steps from 16px to 27px, saved in the browser, applied before first paint, available on every page. At larger sizes the desktop navigation switches to the menu button so nothing overlaps. Verified with no horizontal overflow at every size on phone, tablet, and desktop; at 200% browser zoom; and with the browser's text-only font size set to 200%.
+- **High contrast mode**: a toggle that is remembered. It follows the operating system's "increase contrast" setting until the visitor makes a choice. Standard appearance remains the default. Uses darker brand tones, underlined links, solid borders, and a yellow-and-black focus ring. Windows forced-colors mode is respected.
+- **Navigation**: new accessible mobile menu (button with expanded state, Escape to close with focus returned, closes on navigation, large links, current-page indication), visible "Step X of 6" in the booking wizard, a "How booking works" guide on the Schedule page, and a skip link that stays first in tab order.
+- **Call Kindred**: a click-to-call button shown next to "Schedule a Visit" (header bar, homepage hero, call-to-action bands, Schedule, Contact, mobile menu) only when a business phone number is set in Admin > Settings. No number is invented.
+- **Our story**: "Why Kindred Exists" on the About page (copy as provided, presented as personal motivation) and "A Little More Than Technology Support" on the homepage with a link to it. The optional owner photo slot now sits beside the story and shows text only until a real photo is assigned.
+- **Tests**: new `e2e/readability.spec.ts` (text size and persistence, high contrast and OS preference, keyboard focus, mobile menu, Call button visibility, story sections, axe scans in high contrast and at the largest text size, and booking on a phone at the largest text size). 241 unit and integration tests and 37 end-to-end tests pass, and the production build passes.

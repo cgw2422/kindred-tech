@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { buttonClass } from "@/components/ui";
+import { DisplayControls } from "@/components/a11y/DisplayControls";
+import { MobileMenu } from "./MobileMenu";
 
 export const SERVICE_NAV = [
   { href: "/services/computer-laptop-support", label: "Computer & Laptop Support" },
@@ -23,38 +25,37 @@ const MAIN_NAV = [
 ];
 
 export function SiteHeader({ phone }: { phone?: string }) {
+  const tel = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
   return (
-    <header className="border-b border-line bg-white">
+    <header className="relative border-b border-line bg-white">
       <a href="#main" className="skip-link">
         Skip to main content
       </a>
-      {phone && (
-        <div className="bg-navy text-white">
-          <div className="container-site flex items-center justify-end py-1.5 text-sm">
-            <span>
-              Call us:{" "}
-              <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="font-semibold text-white underline">
-                {phone}
-              </a>
-            </span>
-          </div>
+      <div className="no-print bg-navy text-white">
+        <div className="container-site flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-2">
+          <DisplayControls />
+          {phone && tel && (
+            <a href={tel} className="inline-flex min-h-[44px] items-center gap-2 font-semibold text-white underline" aria-label={`Call Kindred at ${phone}`}>
+              <span aria-hidden="true">Call Kindred:</span> {phone}
+            </a>
+          )}
         </div>
-      )}
-      <div className="container-site flex items-center justify-between gap-4 py-4">
-        <Link href="/" className="no-underline">
+      </div>
+      <div className="container-site flex flex-wrap items-center justify-between gap-x-4 gap-y-3 py-4">
+        <Link href="/" className="min-w-0 no-underline">
           <Logo />
         </Link>
-        <nav aria-label="Main" className="hidden xl:block">
+        <nav aria-label="Main" className="site-nav-desktop hidden xl:block">
           <ul className="flex items-center gap-1">
             {MAIN_NAV.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="rounded-md px-2.5 py-2 font-semibold whitespace-nowrap text-navy no-underline hover:bg-navy-50">
+                <Link href={item.href} className="inline-flex min-h-[48px] items-center rounded-md px-2.5 font-semibold whitespace-nowrap text-navy no-underline hover:bg-navy-50 hover:underline">
                   {item.label}
                 </Link>
               </li>
             ))}
             <li>
-              <Link href="/login" className="rounded-md px-2.5 py-2 font-semibold whitespace-nowrap text-navy no-underline hover:bg-navy-50">
+              <Link href="/login" className="inline-flex min-h-[48px] items-center rounded-md px-2.5 font-semibold whitespace-nowrap text-navy no-underline hover:bg-navy-50 hover:underline">
                 Sign In
               </Link>
             </li>
@@ -65,30 +66,7 @@ export function SiteHeader({ phone }: { phone?: string }) {
             </li>
           </ul>
         </nav>
-        <details className="relative xl:hidden">
-          <summary className={buttonClass("outline", "md", "list-none cursor-pointer [&::-webkit-details-marker]:hidden")}>Menu</summary>
-          <nav aria-label="Mobile" className="absolute right-0 z-40 mt-2 w-72 rounded-lg border border-line bg-white p-3 shadow-lg">
-            <ul className="flex flex-col">
-              {MAIN_NAV.map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href} className="block rounded-md px-3 py-3 font-semibold text-navy no-underline hover:bg-navy-50">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link href="/login" className="block rounded-md px-3 py-3 font-semibold text-navy no-underline hover:bg-navy-50">
-                  Sign In
-                </Link>
-              </li>
-              <li className="mt-2">
-                <Link href="/schedule" className={buttonClass("primary", "md", "w-full")}>
-                  Schedule a Visit
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </details>
+        <MobileMenu items={[...MAIN_NAV, { href: "/login", label: "Sign In" }]} phone={phone} />
       </div>
     </header>
   );

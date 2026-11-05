@@ -26,7 +26,7 @@ export function Logo({ inverted = false, compact = false }: { inverted?: boolean
         <LogoMark size={compact ? 34 : 44} />
       )}
       <span className="flex flex-col leading-none">
-        <span className={`font-heading text-[1.45rem] font-bold tracking-tight ${main}`}>Kindred</span>
+        <span className={`font-heading text-[1.45rem] font-bold tracking-tight ${main}`}>Kindred</span>{" "}
         <span className={`mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em] ${sub}`}>Tech Support</span>
       </span>
     </span>

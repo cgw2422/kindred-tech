@@ -78,7 +78,7 @@ test("contact form saves a residential message separately from community leads",
   await page.getByLabel(/^Phone/).fill("330-555-0144");
   await page.getByLabel(/message|How can we help/i).last().fill("Question about help with my tablet.");
   await page.getByRole("button", { name: /send/i }).click();
-  await expect(page.locator("[role=status]").first()).toContainText("received your message");
+  await expect(page.locator("main [role=status]").first()).toContainText("received your message");
   await login(page, "owner@example.com");
   await page.goto("/admin/leads");
   const residentialCard = page.locator("div").filter({ has: page.locator("#residential") }).last();

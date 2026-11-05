@@ -100,7 +100,7 @@ export default async function SeniorLivingPage() {
             <h2 id="program-title" className="mt-1 text-2xl md:text-3xl">
               Recurring Resident Technology Support Program
             </h2>
-            <p className="mt-3 max-w-3xl text-lg">
+            <p className="mt-3 measure text-lg">
               A dependable monthly program that brings scheduled, on-site technology assistance to your residents. You choose the schedule, we handle the appointments,
               and residents get patient, one-on-one help from a familiar Kindred technician.
             </p>
@@ -267,7 +267,7 @@ export default async function SeniorLivingPage() {
       </Section>
 
       <Section id="community-faq" title="Community partnership questions">
-        <div className="max-w-3xl">
+        <div className="measure">
           <FaqList items={COMMUNITY_FAQS} />
         </div>
       </Section>

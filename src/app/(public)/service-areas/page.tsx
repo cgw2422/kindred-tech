@@ -42,7 +42,7 @@ export default async function ServiceAreasPage() {
 
       <div className="container-site py-12 md:py-16">
         <h2 className="mb-2 text-2xl md:text-3xl">In-home visits for individuals and families</h2>
-        <p className="mb-8 max-w-3xl text-lg">Our residential in-home service area is listed below. If you are unsure whether we can reach your address, just ask.</p>
+        <p className="mb-8 measure text-lg">Our residential in-home service area is listed below. If you are unsure whether we can reach your address, just ask.</p>
         {areas.length === 0 ? (
           <p className="text-lg">
             Our service area list is being updated. Please <Link href="/contact">contact us</Link> to ask whether we serve your address.
@@ -87,7 +87,7 @@ export default async function ServiceAreasPage() {
           <h2 id="partnership-territory" className="mt-1 text-2xl md:text-3xl">
             Community partnership territory
           </h2>
-          <p className="mt-3 max-w-3xl text-lg">
+          <p className="mt-3 measure text-lg">
             We offer resident technology support programs to senior living and 55+ communities within approximately {PARTNERSHIP_RADIUS_MILES} miles of Gnadenhutten,
             Ohio. Major markets include:
           </p>
@@ -97,7 +97,7 @@ export default async function ServiceAreasPage() {
             ))}
             <li>Other qualifying communities within our service territory</li>
           </ul>
-          <p className="mt-5 max-w-3xl">
+          <p className="mt-5 measure">
             This territory applies to community partnerships. We confirm availability for each community before preparing a proposal, and it does not expand our
             residential in-home service area.
           </p>
@@ -111,7 +111,7 @@ export default async function ServiceAreasPage() {
           </div>
         </section>
 
-        <section aria-labelledby="outside-area" className="mt-12 max-w-3xl rounded-lg border border-line bg-white p-6">
+        <section aria-labelledby="outside-area" className="mt-12 measure rounded-lg border border-line bg-white p-6">
           <h2 id="outside-area" className="text-xl md:text-2xl">
             Outside our in-home area?
           </h2>

@@ -19,16 +19,41 @@
   --font-heading: var(--font-libre), Georgia, "Times New Roman", serif;
   --font-sans: var(--font-open-sans), "Segoe UI", Arial, sans-serif;
 
-  --container-site: 1150px;
+  /* rem-based so the layout grows with the visitor's text size (about 1150px at the default size) */
+  --container-site: 64rem;
+
+  /* Small text never drops below 16px at the default size */
+  --text-xs: 0.8rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.9rem;
+  --text-sm--line-height: 1.55;
 }
 
 @layer base {
+  /*
+   * Text size. Percentages of the browser's own default size, so a visitor's
+   * browser text-size setting and zoom still apply on top of these levels.
+   * Levels are chosen with the A- / A / A+ control and saved in localStorage.
+   */
   html {
-    font-size: 112.5%; /* 18px base for readability */
+    font-size: 112.5%; /* 18px: the default reading size */
     -webkit-text-size-adjust: 100%;
   }
+  html[data-text-size="-1"] {
+    font-size: 100%;
+  }
+  html[data-text-size="1"] {
+    font-size: 125%;
+  }
+  html[data-text-size="2"] {
+    font-size: 137.5%;
+  }
+  html[data-text-size="3"] {
+    font-size: 150%;
+  }
   body {
-    @apply bg-soft text-body font-sans leading-relaxed antialiased;
+    @apply bg-soft text-body font-sans antialiased;
+    line-height: 1.65;
   }
   h1,
   h2,
@@ -37,14 +62,87 @@
     @apply font-heading text-navy;
     line-height: 1.25;
     text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  p,
+  li,
+  dd {
+    overflow-wrap: break-word;
   }
   a {
     @apply text-navy underline underline-offset-4;
+    text-decoration-thickness: 1px;
   }
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  /* Focus: a clear outline everywhere; white on dark sections so it stays visible. */
   :focus-visible {
     outline: 3px solid #477c32;
     outline-offset: 2px;
     border-radius: 3px;
+  }
+  .bg-navy :focus-visible,
+  .bg-navy-dark :focus-visible,
+  .bg-green :focus-visible,
+  .bg-navy:focus-visible,
+  .bg-green:focus-visible {
+    outline-color: #ffffff;
+  }
+
+  /* High-contrast mode (toggle, or the operating system's "increase contrast" setting). */
+  html[data-contrast="high"] {
+    --color-navy: #0a2540;
+    --color-navy-dark: #000f1f;
+    --color-green: #2b5419;
+    --color-green-dark: #1f3e11;
+    --color-green-light: #eef6e9;
+    --color-soft: #ffffff;
+    --color-body: #111111;
+    --color-line: #4a4a4a;
+    --color-warn: #5c3b00;
+    --color-danger: #7f1414;
+  }
+  html[data-contrast="high"] body {
+    background: #ffffff;
+    color: #111111;
+  }
+  html[data-contrast="high"] a {
+    text-decoration-thickness: 2px;
+  }
+  /* Underline every text link (button-style links keep their solid borders). */
+  html[data-contrast="high"] a:not([class*="justify-center"]) {
+    text-decoration-line: underline !important;
+  }
+  html[data-contrast="high"] [class*="text-white/"] {
+    color: #ffffff !important;
+  }
+  html[data-contrast="high"] .border-transparent {
+    border-color: currentColor !important;
+  }
+  html[data-contrast="high"] input,
+  html[data-contrast="high"] select,
+  html[data-contrast="high"] textarea {
+    border-color: #111111 !important;
+  }
+  html[data-contrast="high"] ::placeholder {
+    color: #444444;
+    opacity: 1;
+  }
+  html[data-contrast="high"] :focus-visible {
+    outline: 4px solid #000000 !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 8px #ffd400;
+  }
+  html[data-contrast="high"] .bg-navy :focus-visible,
+  html[data-contrast="high"] .bg-navy-dark :focus-visible {
+    outline-color: #ffffff !important;
+  }
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline: 3px solid CanvasText;
+    }
   }
   ::selection {
     background: #edf4e8;
@@ -62,6 +160,10 @@
 }
 
 @layer components {
+  /* Comfortable reading width for paragraphs */
+  .measure {
+    max-width: 68ch;
+  }
   .container-site {
     @apply mx-auto w-full px-5 md:px-8;
     max-width: var(--container-site);
@@ -130,4 +232,46 @@
 .article-body hr {
   margin: 2rem 0;
   border-color: var(--color-line);
+}
+
+/*
+ * At larger text sizes the full desktop menu no longer fits on one line, so the
+ * Menu button is used instead (breakpoints are based on the browser's 16px rem).
+ */
+@media (min-width: 80rem) {
+  html[data-text-size="1"] .site-nav-desktop,
+  html[data-text-size="2"] .site-nav-desktop,
+  html[data-text-size="3"] .site-nav-desktop {
+    display: none;
+  }
+  html[data-text-size="1"] .site-nav-toggle,
+  html[data-text-size="2"] .site-nav-toggle,
+  html[data-text-size="3"] .site-nav-toggle {
+    display: block;
+  }
+}
+@media (min-width: 96rem) {
+  html[data-text-size="1"] .site-nav-desktop {
+    display: block;
+  }
+  html[data-text-size="1"] .site-nav-toggle {
+    display: none;
+  }
+}
+
+/*
+ * Narrow screens and very large text (rem-based, so this also applies when a
+ * visitor enlarges their browser's text size): let long words wrap and let
+ * flex/grid items shrink instead of pushing the page sideways.
+ */
+@media (max-width: 40rem) {
+  :where(main, header, footer) :where(h1, h2, h3, h4, p, li, dt, dd, a, span, label, button, summary, legend) {
+    overflow-wrap: anywhere;
+  }
+  :where(main, header, footer) :where(.flex, .grid) > * {
+    min-width: 0;
+  }
+  :where(main, header, footer) .whitespace-nowrap {
+    white-space: normal;
+  }
 }

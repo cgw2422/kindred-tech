@@ -239,6 +239,9 @@ export function BookingWizard({
         </ol>
 
         <div className="rounded-lg border border-line bg-white p-5 md:p-8">
+          <p className="mb-1 font-semibold text-green-dark">
+            Step {step + 1} of {STEPS.length}
+          </p>
           <h2 ref={headingRef} tabIndex={-1} className="mb-4 text-2xl focus:outline-none">
             {step === 0 && "What can we help with?"}
             {step === 1 && "Who is this appointment for?"}
