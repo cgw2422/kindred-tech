@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { communityMessageWhere, residentialMessageWhere } from "@/lib/leads";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/auth/permissions";
 import { getSettings } from "@/lib/settings";
@@ -24,7 +25,7 @@ export default async function AdminDashboard() {
   const monthStart = startOfDayUtc(`${year}-${String(month).padStart(2, "0")}-01`, tz);
   const showBilling = can(user.role, "billing:view");
 
-  const [today, upcoming, pending, monthPayments, outstanding, activeMemberships, recentCustomers, helpDays, newMessages, newInquiries, invoiceRequests] = await Promise.all([
+  const [today, upcoming, pending, monthPayments, outstanding, activeMemberships, recentCustomers, helpDays, newMessages, newInquiries, invoiceRequests, newCommunityMessages] = await Promise.all([
     prisma.appointment.findMany({
       where: { startsAt: { gte: todayStart, lt: tomorrowStart }, status: { notIn: ["CANCELED"] } },
       include: { customer: true, service: true, technician: true, address: true },
@@ -42,9 +43,10 @@ export default async function AdminDashboard() {
     prisma.membership.findMany({ where: { status: "ACTIVE" }, include: { plan: true } }),
     prisma.customer.findMany({ orderBy: { createdAt: "desc" }, take: 6 }),
     prisma.techHelpDay.findMany({ where: { startsAt: { gte: todayStart }, status: { in: ["SCHEDULED", "CONFIRMED"] } }, include: { facility: true, _count: { select: { appointments: true } } }, orderBy: { startsAt: "asc" }, take: 5 }),
-    prisma.contactMessage.count({ where: { status: "NEW" } }),
+    prisma.contactMessage.count({ where: { status: "NEW", ...residentialMessageWhere } }),
     prisma.facilityInquiry.count({ where: { status: "NEW" } }),
     prisma.workOrder.count({ where: { invoiceRequestedAt: { not: null }, appointment: { invoices: { none: {} } } } }),
+    prisma.contactMessage.count({ where: { status: "NEW", ...communityMessageWhere } }),
   ]);
 
   const revenue = (monthPayments._sum.amountCents ?? 0) - (monthPayments._sum.refundedCents ?? 0);
@@ -83,7 +85,8 @@ export default async function AdminDashboard() {
         {showBilling && <Stat label="Revenue this month" value={formatCents(revenue)} hint="Verified payments, net of refunds" href="/admin/reports" />}
         {showBilling && <Stat label="Outstanding invoices" value={formatCents(outstandingCents)} hint={`${outstanding.length} open${overdue ? `, ${overdue} overdue` : ""}`} href="/admin/invoices?status=OPEN" />}
         {showBilling && <Stat label="Active memberships" value={activeMemberships.length} hint={`${formatCents(mrr)} monthly recurring`} href="/admin/memberships" />}
-        <Stat label="New messages" value={newMessages + newInquiries} hint={`${newInquiries} facility inquiries`} href="/admin/leads" />
+        <Stat label="New residential messages" value={newMessages} hint="Contact form" href="/admin/leads#residential" />
+        <Stat label="New community leads" value={newInquiries + newCommunityMessages} hint={`${newInquiries} proposal request${newInquiries === 1 ? "" : "s"}`} href="/admin/leads#community" />
         <Stat label="Invoice requests" value={invoiceRequests} hint="From technicians" href="/admin/work-orders?filter=invoice" />
       </div>
 

@@ -11,11 +11,11 @@ export function SiteFooter({ business }: { business: Settings<"business"> }) {
         <div className="md:col-span-1">
           <Logo inverted />
           <p className="mt-4 text-green-light">{business.tagline}</p>
-          <p className="mt-2 text-sm text-white/85">Serving Tuscarawas County, Ohio.</p>
+          <p className="mt-2 text-white/90">Serving East-Central and Northeast Ohio. Based in Tuscarawas County.</p>
         </div>
         <div>
           <h2 className="mb-3 font-heading text-lg text-white">Services</h2>
-          <ul className="space-y-2 text-sm">
+          <ul className="space-y-3">
             {SERVICE_NAV.map((s) => (
               <li key={s.href}>
                 <Link href={s.href} className="text-white/90 hover:text-white">
@@ -27,10 +27,11 @@ export function SiteFooter({ business }: { business: Settings<"business"> }) {
         </div>
         <div>
           <h2 className="mb-3 font-heading text-lg text-white">Company</h2>
-          <ul className="space-y-2 text-sm">
+          <ul className="space-y-3">
             {[
               ["/about", "About"],
               ["/senior-living", "Senior Living Communities"],
+              ["/senior-living#inquiry", "Request a Partnership Proposal"],
               ["/pricing", "Pricing"],
               ["/service-areas", "Service Areas"],
               ["/faq", "Frequently Asked Questions"],
@@ -47,7 +48,7 @@ export function SiteFooter({ business }: { business: Settings<"business"> }) {
         </div>
         <div>
           <h2 className="mb-3 font-heading text-lg text-white">Contact</h2>
-          <ul className="space-y-2 text-sm text-white/90">
+          <ul className="space-y-3 text-white/90">
             {business.phone && (
               <li>
                 Phone:{" "}
@@ -72,14 +73,14 @@ export function SiteFooter({ business }: { business: Settings<"business"> }) {
             <li>{business.hoursDescription}</li>
             <li>
               <Link href="/contact" className="text-white">
-                Send us a message
+                Contact Kindred
               </Link>
             </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-white/15">
-        <div className="container-site flex flex-col gap-2 py-5 text-sm text-white/80 md:flex-row md:justify-between">
+        <div className="container-site flex flex-col gap-2 py-5 text-white/85 md:flex-row md:justify-between">
           <p>
             &copy; {year} {business.name}. All rights reserved.
           </p>

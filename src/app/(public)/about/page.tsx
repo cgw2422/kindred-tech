@@ -107,7 +107,7 @@ export default async function AboutPage() {
         </div>
       </Section>
 
-      <CtaBand secondary={{ href: "/contact", label: "Contact Us" }} />
+      <CtaBand secondary={{ href: "/contact", label: "Contact Kindred" }} />
     </>
   );
 }

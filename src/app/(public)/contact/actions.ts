@@ -4,11 +4,15 @@ import { clientIp } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { type ActionState, failure, formObject, success, zodFieldErrors } from "@/lib/forms";
 import { rateLimit } from "@/lib/rate-limit";
+import { getSettings } from "@/lib/settings";
+import { env } from "@/lib/env";
+import { queueTemplatedEmail } from "@/lib/email/send";
 import { echoValues } from "../_lib/format";
 import { CONTACT_TOPICS, contactSchema } from "./schema";
 
 const FIELDS = ["name", "email", "phone", "topic", "message"] as const;
-const SUCCESS_MESSAGE = "Thank you. Your message has been sent and we will get back to you as soon as we can.";
+// Deliberately does not claim an email was sent: the message is saved for our team.
+const SUCCESS_MESSAGE = "Thank you. We received your message and will get back to you as soon as we can.";
 
 export async function submitContactMessage(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const raw = formObject(formData);
@@ -26,8 +30,9 @@ export async function submitContactMessage(_prev: ActionState, formData: FormDat
   }
 
   const d = parsed.data;
+  let saved: { id: string };
   try {
-    await prisma.contactMessage.create({
+    saved = await prisma.contactMessage.create({
       data: {
         name: d.name,
         email: d.email || null,
@@ -39,6 +44,27 @@ export async function submitContactMessage(_prev: ActionState, formData: FormDat
   } catch (err) {
     console.error("[contact] failed to save message", (err as Error).message);
     return fail("Sorry, something went wrong while sending your message. Please try again in a few minutes.");
+  }
+  try {
+    const notifications = await getSettings("notifications");
+    if (notifications.adminNotificationEmail) {
+      const isCommunity = d.topic === "community";
+      await queueTemplatedEmail({
+        templateKey: "admin_new_lead",
+        to: notifications.adminNotificationEmail,
+        vars: {
+          leadType: isCommunity ? "community contact message" : "contact message",
+          leadName: d.name,
+          leadSummary: `${CONTACT_TOPICS.find((t) => t.value === d.topic)?.label ?? "General"}: ${d.message.slice(0, 200)}`,
+          adminUrl: `${env.appUrl}/admin/leads`,
+        },
+        idempotencyKey: `admin-lead:contact:${saved.id}`,
+        relatedType: "ContactMessage",
+        relatedId: saved.id,
+      });
+    }
+  } catch (err) {
+    console.error("[contact] message saved but notification could not be queued", (err as Error).message);
   }
   return success(SUCCESS_MESSAGE);
 }

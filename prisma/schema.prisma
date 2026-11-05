@@ -46,13 +46,13 @@ model User {
   customerId String?   @unique
   customer   Customer? @relation("CustomerUser", fields: [customerId], references: [id], onDelete: SetNull)
 
-  sessions        Session[]
-  authTokens      AuthToken[]
-  technician      Technician?
-  familyContacts  FamilyContact[]
-  facilityContact FacilityContact[]
-  auditLogs       AuditLog[]
-  statusChanges   AppointmentStatusChange[]
+  sessions         Session[]
+  authTokens       AuthToken[]
+  technician       Technician?
+  familyContacts   FamilyContact[]
+  facilityContact  FacilityContact[]
+  auditLogs        AuditLog[]
+  statusChanges    AppointmentStatusChange[]
   consentsRecorded ConsentRecord[]
   paymentsRecorded Payment[]
 }
@@ -140,40 +140,40 @@ enum CustomerStatus {
 }
 
 model Customer {
-  id                 String            @id @default(cuid())
-  firstName          String
-  lastName           String
-  preferredName      String?
-  email              String?
-  phone              String?
-  contactPreference  ContactPreference @default(PHONE)
-  bestTimeToContact  String?
-  status             CustomerStatus    @default(ACTIVE)
-  leadSource         String?
-  internalNotes      String?
-  marketingOptIn     Boolean           @default(false)
-  marketingOptInAt   DateTime?
-  unsubscribeToken   String            @unique @default(cuid())
-  stripeCustomerId   String?           @unique
+  id                String            @id @default(cuid())
+  firstName         String
+  lastName          String
+  preferredName     String?
+  email             String?
+  phone             String?
+  contactPreference ContactPreference @default(PHONE)
+  bestTimeToContact String?
+  status            CustomerStatus    @default(ACTIVE)
+  leadSource        String?
+  internalNotes     String?
+  marketingOptIn    Boolean           @default(false)
+  marketingOptInAt  DateTime?
+  unsubscribeToken  String            @unique @default(cuid())
+  stripeCustomerId  String?           @unique
   // Residents of a partner facility
-  facilityId         String?
-  facility           Facility?         @relation(fields: [facilityId], references: [id], onDelete: SetNull)
-  facilityUnit       String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  facilityId        String?
+  facility          Facility?         @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+  facilityUnit      String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
-  user               User?             @relation("CustomerUser")
-  addresses          Address[]
-  familyContacts     FamilyContact[]
-  devices            Device[]
-  appointments       Appointment[]
-  invoices           Invoice[]
-  payments           Payment[]
-  memberships        Membership[]
-  consents           ConsentRecord[]
-  communications     Communication[]
+  user                User?                @relation("CustomerUser")
+  addresses           Address[]
+  familyContacts      FamilyContact[]
+  devices             Device[]
+  appointments        Appointment[]
+  invoices            Invoice[]
+  payments            Payment[]
+  memberships         Membership[]
+  consents            ConsentRecord[]
+  communications      Communication[]
   subscriptionReviews SubscriptionReview[]
-  supportRequests    SupportRequest[]
+  supportRequests     SupportRequest[]
 
   @@index([lastName, firstName])
   @@index([email])
@@ -181,22 +181,22 @@ model Customer {
 }
 
 model Address {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   customerId  String
-  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   label       String?
   line1       String
   line2       String?
   city        String
-  state       String    @default("OH")
+  state       String   @default("OH")
   postalCode  String
   county      String?
   lat         Float?
   lng         Float?
   geocodedBy  String?
-  isPrimary   Boolean   @default(false)
+  isPrimary   Boolean  @default(false)
   accessNotes String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
   appointments Appointment[]
 }
@@ -221,8 +221,8 @@ model FamilyContact {
   user                  User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt             DateTime @default(now())
 
-  invoicesBilled  Invoice[]
-  memberships     Membership[]   @relation("MembershipPurchaser")
+  invoicesBilled Invoice[]
+  memberships    Membership[] @relation("MembershipPurchaser")
 
   @@index([userId])
 }
@@ -294,27 +294,27 @@ model ServiceCategory {
 }
 
 model Service {
-  id                       String       @id @default(cuid())
-  slug                     String       @unique
-  name                     String
-  categoryId               String?
-  category                 ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  shortDescription         String
-  description              String
-  pricingType              PricingType  @default(FIXED)
-  basePriceCents           Int          @default(0)
-  durationMinutes          Int          @default(60)
+  id                     String           @id @default(cuid())
+  slug                   String           @unique
+  name                   String
+  categoryId             String?
+  category               ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  shortDescription       String
+  description            String
+  pricingType            PricingType      @default(FIXED)
+  basePriceCents         Int              @default(0)
+  durationMinutes        Int              @default(60)
   // Optional extension blocks, e.g. "Additional 30 minutes: $40"
-  extensionMinutes         Int?
-  extensionPriceCents      Int?
-  isRemote                 Boolean      @default(false)
-  isActive                 Boolean      @default(true)
-  isBookableOnline         Boolean      @default(true)
-  requiresApproval         Boolean      @default(true)
-  memberDiscountEligible   Boolean      @default(true)
-  sortOrder                Int          @default(0)
-  createdAt                DateTime     @default(now())
-  updatedAt                DateTime     @updatedAt
+  extensionMinutes       Int?
+  extensionPriceCents    Int?
+  isRemote               Boolean          @default(false)
+  isActive               Boolean          @default(true)
+  isBookableOnline       Boolean          @default(true)
+  requiresApproval       Boolean          @default(true)
+  memberDiscountEligible Boolean          @default(true)
+  sortOrder              Int              @default(0)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   addons       ServiceAddon[]
   bundleItems  ServiceBundleItem[]
@@ -358,20 +358,20 @@ enum DiscountType {
 }
 
 model Discount {
-  id          String       @id @default(cuid())
-  code        String?      @unique
-  name        String
-  type        DiscountType
+  id        String       @id @default(cuid())
+  code      String?      @unique
+  name      String
+  type      DiscountType
   // PERCENT: whole percent (e.g. 10); FIXED: cents
-  value       Int
-  serviceId   String?
-  service     Service?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  startsAt    DateTime?
-  endsAt      DateTime?
-  maxUses     Int?
-  usedCount   Int          @default(0)
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
+  value     Int
+  serviceId String?
+  service   Service?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  maxUses   Int?
+  usedCount Int          @default(0)
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
 
   appointments Appointment[]
 }
@@ -395,24 +395,24 @@ model ServiceArea {
 // ---------------------------------------------------------------------------
 
 model Technician {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  displayName   String
-  color         String   @default("#10375B")
-  isActive      Boolean  @default(true)
-  homeBaseLine  String?
-  homeBaseLat   Float?
-  homeBaseLng   Float?
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName    String
+  color          String   @default("#10375B")
+  isActive       Boolean  @default(true)
+  homeBaseLine   String?
+  homeBaseLat    Float?
+  homeBaseLng    Float?
   serviceAreaIds String[]
-  createdAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
 
-  schedules     TechnicianSchedule[]
-  blackouts     Blackout[]
-  appointments  Appointment[]
-  techHelpDays  TechHelpDay[]
-  workOrders    WorkOrder[]
-  routePlans    RoutePlan[]
+  schedules    TechnicianSchedule[]
+  blackouts    Blackout[]
+  appointments Appointment[]
+  techHelpDays TechHelpDay[]
+  workOrders   WorkOrder[]
+  routePlans   RoutePlan[]
 }
 
 model TechnicianSchedule {
@@ -513,9 +513,9 @@ model Appointment {
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 
-  statusChanges AppointmentStatusChange[]
-  workOrder     WorkOrder?
-  invoices      Invoice[]
+  statusChanges   AppointmentStatusChange[]
+  workOrder       WorkOrder?
+  invoices        Invoice[]
   membershipUsage MembershipUsage[]
 
   @@index([technicianId, startsAt])
@@ -585,8 +585,8 @@ model WorkOrder {
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
 
-  timeEntries     WorkTimeEntry[]
-  additionalWork  AdditionalWorkItem[]
+  timeEntries        WorkTimeEntry[]
+  additionalWork     AdditionalWorkItem[]
   subscriptionReview SubscriptionReview?
 }
 
@@ -599,15 +599,15 @@ model WorkTimeEntry {
 }
 
 model AdditionalWorkItem {
-  id               String    @id @default(cuid())
-  workOrderId      String
-  workOrder        WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
-  description      String
-  minutes          Int       @default(0)
-  priceCents       Int
-  approvedByName   String
-  approvalMethod   ConsentMethod
-  approvedAt       DateTime  @default(now())
+  id             String        @id @default(cuid())
+  workOrderId    String
+  workOrder      WorkOrder     @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  description    String
+  minutes        Int           @default(0)
+  priceCents     Int
+  approvedByName String
+  approvalMethod ConsentMethod
+  approvedAt     DateTime      @default(now())
 }
 
 // ---------------------------------------------------------------------------
@@ -643,35 +643,35 @@ enum SubscriptionDecision {
 }
 
 model SubscriptionReview {
-  id                     String      @id @default(cuid())
+  id                     String     @id @default(cuid())
   customerId             String
-  customer               Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  workOrderId            String?     @unique
-  workOrder              WorkOrder?  @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
-  authorizationConfirmed Boolean     @default(false)
+  customer               Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  workOrderId            String?    @unique
+  workOrder              WorkOrder? @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  authorizationConfirmed Boolean    @default(false)
   authorizedByName       String?
   authorizedAt           DateTime?
   notes                  String?
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
 
   items SubscriptionItem[]
 }
 
 model SubscriptionItem {
-  id                          String               @id @default(cuid())
-  reviewId                    String
-  review                      SubscriptionReview   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  name                        String
-  category                    SubscriptionCategory
-  priceCents                  Int
-  frequency                   BillingFrequency
-  decision                    SubscriptionDecision @default(UNDECIDED)
-  cancellationAssisted        Boolean              @default(false)
-  estimatedMonthlySavingsCents Int                 @default(0)
-  followUpNeeded              Boolean              @default(false)
-  followUpNotes               String?
-  createdAt                   DateTime             @default(now())
+  id                           String               @id @default(cuid())
+  reviewId                     String
+  review                       SubscriptionReview   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  name                         String
+  category                     SubscriptionCategory
+  priceCents                   Int
+  frequency                    BillingFrequency
+  decision                     SubscriptionDecision @default(UNDECIDED)
+  cancellationAssisted         Boolean              @default(false)
+  estimatedMonthlySavingsCents Int                  @default(0)
+  followUpNeeded               Boolean              @default(false)
+  followUpNotes                String?
+  createdAt                    DateTime             @default(now())
 }
 
 // ---------------------------------------------------------------------------
@@ -688,35 +688,35 @@ enum InvoiceStatus {
 }
 
 model Invoice {
-  id                    String        @id @default(cuid())
-  number                String        @unique
-  status                InvoiceStatus @default(DRAFT)
-  customerId            String?
-  customer              Customer?     @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  facilityId            String?
-  facility              Facility?     @relation(fields: [facilityId], references: [id], onDelete: Restrict)
-  billToContactId       String?
-  billToContact         FamilyContact? @relation(fields: [billToContactId], references: [id], onDelete: SetNull)
-  appointmentId         String?
-  appointment           Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  techHelpDayId         String?
-  techHelpDay           TechHelpDay?  @relation(fields: [techHelpDayId], references: [id], onDelete: SetNull)
-  issuedAt              DateTime?
-  dueAt                 DateTime?
-  subtotalCents         Int           @default(0)
-  discountCents         Int           @default(0)
-  taxCents              Int           @default(0)
-  totalCents            Int           @default(0)
-  amountPaidCents       Int           @default(0)
-  amountRefundedCents   Int           @default(0)
-  depositCents          Int           @default(0)
-  notes                 String?
-  publicTokenHash       String?       @unique
-  stripeCheckoutSessionId String?     @unique
-  stripePaymentLinkUrl  String?
-  voidedAt              DateTime?
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  id                      String         @id @default(cuid())
+  number                  String         @unique
+  status                  InvoiceStatus  @default(DRAFT)
+  customerId              String?
+  customer                Customer?      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  facilityId              String?
+  facility                Facility?      @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  billToContactId         String?
+  billToContact           FamilyContact? @relation(fields: [billToContactId], references: [id], onDelete: SetNull)
+  appointmentId           String?
+  appointment             Appointment?   @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  techHelpDayId           String?
+  techHelpDay             TechHelpDay?   @relation(fields: [techHelpDayId], references: [id], onDelete: SetNull)
+  issuedAt                DateTime?
+  dueAt                   DateTime?
+  subtotalCents           Int            @default(0)
+  discountCents           Int            @default(0)
+  taxCents                Int            @default(0)
+  totalCents              Int            @default(0)
+  amountPaidCents         Int            @default(0)
+  amountRefundedCents     Int            @default(0)
+  depositCents            Int            @default(0)
+  notes                   String?
+  publicTokenHash         String?        @unique
+  stripeCheckoutSessionId String?        @unique
+  stripePaymentLinkUrl    String?
+  voidedAt                DateTime?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
 
   lines    InvoiceLine[]
   payments Payment[]
@@ -797,11 +797,11 @@ model Refund {
 }
 
 model StripeEvent {
-  id          String   @id
+  id          String    @id
   type        String
   status      String
   error       String?
-  receivedAt  DateTime @default(now())
+  receivedAt  DateTime  @default(now())
   processedAt DateTime?
 }
 
@@ -815,20 +815,20 @@ enum BillingInterval {
 }
 
 model MembershipPlan {
-  id                      String          @id @default(cuid())
-  name                    String
-  slug                    String          @unique
-  description             String
-  priceCents              Int
-  interval                BillingInterval @default(MONTH)
-  stripePriceId           String?
-  priorityScheduling      Boolean         @default(true)
-  remoteMinutesPerPeriod  Int             @default(0)
-  annualReviewIncluded    Boolean         @default(false)
-  inHomeDiscountPercent   Int             @default(0)
-  benefitsText            String[]
-  isActive                Boolean         @default(true)
-  createdAt               DateTime        @default(now())
+  id                     String          @id @default(cuid())
+  name                   String
+  slug                   String          @unique
+  description            String
+  priceCents             Int
+  interval               BillingInterval @default(MONTH)
+  stripePriceId          String?
+  priorityScheduling     Boolean         @default(true)
+  remoteMinutesPerPeriod Int             @default(0)
+  annualReviewIncluded   Boolean         @default(false)
+  inHomeDiscountPercent  Int             @default(0)
+  benefitsText           String[]
+  isActive               Boolean         @default(true)
+  createdAt              DateTime        @default(now())
 
   memberships Membership[]
 }
@@ -842,27 +842,27 @@ enum MembershipStatus {
 }
 
 model Membership {
-  id                   String           @id @default(cuid())
-  planId               String
-  plan                 MembershipPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
-  customerId           String
-  customer             Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  purchaserContactId   String?
-  purchaserContact     FamilyContact?   @relation("MembershipPurchaser", fields: [purchaserContactId], references: [id], onDelete: SetNull)
-  status               MembershipStatus @default(PENDING)
-  priceCents           Int
-  startedAt            DateTime?
-  currentPeriodStart   DateTime?
-  currentPeriodEnd     DateTime?
-  cancelAtPeriodEnd    Boolean          @default(false)
-  canceledAt           DateTime?
-  cancelReason         String?
-  stripeSubscriptionId String?          @unique
-  stripeCheckoutSessionId String?       @unique
-  failedPaymentCount   Int              @default(0)
-  lastPaymentFailedAt  DateTime?
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  id                      String           @id @default(cuid())
+  planId                  String
+  plan                    MembershipPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  customerId              String
+  customer                Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  purchaserContactId      String?
+  purchaserContact        FamilyContact?   @relation("MembershipPurchaser", fields: [purchaserContactId], references: [id], onDelete: SetNull)
+  status                  MembershipStatus @default(PENDING)
+  priceCents              Int
+  startedAt               DateTime?
+  currentPeriodStart      DateTime?
+  currentPeriodEnd        DateTime?
+  cancelAtPeriodEnd       Boolean          @default(false)
+  canceledAt              DateTime?
+  cancelReason            String?
+  stripeSubscriptionId    String?          @unique
+  stripeCheckoutSessionId String?          @unique
+  failedPaymentCount      Int              @default(0)
+  lastPaymentFailedAt     DateTime?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
 
   usage    MembershipUsage[]
   payments Payment[]
@@ -947,16 +947,16 @@ model Facility {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
-  contacts         FacilityContact[]
-  agreements       FacilityAgreement[]
-  techHelpDays     TechHelpDay[]
-  helpDaySeries    TechHelpDaySeries[]
-  residents        Customer[]
-  appointments     Appointment[]
-  invoices         Invoice[]
-  payments         Payment[]
-  sessionRequests  FacilitySessionRequest[]
-  communications   Communication[]
+  contacts        FacilityContact[]
+  agreements      FacilityAgreement[]
+  techHelpDays    TechHelpDay[]
+  helpDaySeries   TechHelpDaySeries[]
+  residents       Customer[]
+  appointments    Appointment[]
+  invoices        Invoice[]
+  payments        Payment[]
+  sessionRequests FacilitySessionRequest[]
+  communications  Communication[]
 }
 
 enum FacilityContactRole {
@@ -968,20 +968,20 @@ enum FacilityContactRole {
 }
 
 model FacilityContact {
-  id                String              @id @default(cuid())
-  facilityId        String
-  facility          Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  name              String
-  title             String?
-  role              FacilityContactRole @default(PRIMARY)
-  email             String?
-  phone             String?
-  userId            String?
-  user              User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
-  portalAccess      Boolean             @default(false)
-  canViewInvoices   Boolean             @default(true)
-  canRequestSessions Boolean            @default(true)
-  createdAt         DateTime            @default(now())
+  id                 String              @id @default(cuid())
+  facilityId         String
+  facility           Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  name               String
+  title              String?
+  role               FacilityContactRole @default(PRIMARY)
+  email              String?
+  phone              String?
+  userId             String?
+  user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  portalAccess       Boolean             @default(false)
+  canViewInvoices    Boolean             @default(true)
+  canRequestSessions Boolean             @default(true)
+  createdAt          DateTime            @default(now())
 
   @@index([userId])
 }
@@ -1027,17 +1027,17 @@ enum HelpDayStatus {
 }
 
 model TechHelpDaySeries {
-  id              String              @id @default(cuid())
+  id              String    @id @default(cuid())
   facilityId      String
-  facility        Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  frequency       String              // WEEKLY | BIWEEKLY | MONTHLY_NTH_WEEKDAY
+  facility        Facility  @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  frequency       String // WEEKLY | BIWEEKLY | MONTHLY_NTH_WEEKDAY
   dayOfWeek       Int
   weekOfMonth     Int?
   startMinute     Int
   durationMinutes Int
   startDate       DateTime
   untilDate       DateTime?
-  createdAt       DateTime            @default(now())
+  createdAt       DateTime  @default(now())
 
   days TechHelpDay[]
 }
@@ -1085,19 +1085,22 @@ model FacilitySessionRequest {
 // ---------------------------------------------------------------------------
 
 model FacilityInquiry {
-  id            String   @id @default(cuid())
-  facilityName  String
-  contactName   String
-  contactTitle  String?
-  email         String
-  phone         String?
-  city          String?
-  residentCount Int?
-  interest      String?
-  message       String?
-  status        String   @default("NEW")
-  facilityId    String?
-  createdAt     DateTime @default(now())
+  id             String   @id @default(cuid())
+  facilityName   String
+  contactName    String
+  contactTitle   String?
+  email          String
+  phone          String?
+  city           String?
+  state          String?
+  communityType  String?
+  visitFrequency String?
+  residentCount  Int?
+  interest       String?
+  message        String?
+  status         String   @default("NEW")
+  facilityId     String?
+  createdAt      DateTime @default(now())
 }
 
 model ContactMessage {

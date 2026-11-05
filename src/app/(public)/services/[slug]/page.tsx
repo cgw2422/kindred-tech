@@ -59,7 +59,7 @@ export default async function ServiceDetailPage({ params }: Props) {
               Schedule a Visit
             </ButtonLink>
             <ButtonLink href="/contact" variant="outline" size="lg">
-              Ask a Question
+              Contact Kindred
             </ButtonLink>
           </>
         }
@@ -170,6 +170,20 @@ export default async function ServiceDetailPage({ params }: Props) {
           ))}
         </ul>
       </Section>
+
+      <section aria-labelledby="communities-note" className="border-t border-line bg-white">
+        <div className="container-site flex flex-col gap-4 py-10 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-2xl">
+            <h2 id="communities-note" className="text-xl md:text-2xl">
+              Senior living or 55+ community?
+            </h2>
+            <p className="mt-2">We provide scheduled, on-site technology support for residents through custom community partnerships.</p>
+          </div>
+          <ButtonLink href="/senior-living" variant="outline">
+            Explore Community Partnerships
+          </ButtonLink>
+        </div>
+      </section>
 
       <CtaBand scheduleHref={scheduleHref} secondary={{ href: "/services", label: "All Services" }} />
     </>

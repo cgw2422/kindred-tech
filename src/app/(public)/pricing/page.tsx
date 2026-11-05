@@ -10,15 +10,16 @@ import { pageMetadata } from "../_lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   path: "/pricing",
-  title: "Pricing",
+  title: "Pricing for In-Home Senior Tech Help",
   description:
-    "Clear, upfront prices for in-home and remote technology help, the Kindred Care membership, travel fees, cancellation policy, and custom pricing for senior living communities.",
+    "Clear, upfront prices for in-home and remote technology help in Tuscarawas County, Ohio, the Kindred Care membership, and custom proposals for senior living community partnerships.",
 });
 
 export default async function PricingPage() {
   const [services, plan, areas, cancellation] = await Promise.all([getActiveServices(), getKindredCarePlan(), getActiveServiceAreas(), getSettings("cancellation")]);
-  const individual = services.filter((s) => s.pricingType !== "CUSTOM_QUOTE");
-  const custom = services.filter((s) => s.pricingType === "CUSTOM_QUOTE");
+  // Residential = services individuals and families book directly. Community = Tech Help Day services.
+  const individual = services.filter((s) => s.isBookableOnline);
+  const custom = services.filter((s) => !s.isBookableOnline);
   const extensions = individual.filter((s) => extensionLabel(s));
 
   return (
@@ -38,38 +39,70 @@ export default async function PricingPage() {
         </p>
       </PageIntro>
 
-      <Section id="service-pricing" title="Service prices">
+      <Section id="service-pricing" title="Residential service prices" intro="For individuals and families. Book online or contact us.">
         {individual.length === 0 ? (
           <p>Our prices are being updated. Please contact us for current pricing.</p>
         ) : (
-          <Table caption="Service prices">
-            <thead>
-              <tr>
-                <Th>Service</Th>
-                <Th>Where</Th>
-                <Th>Time included</Th>
-                <Th className="text-right">Price</Th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Phones and small tablets: easy-to-read cards */}
+            <ul className="grid gap-4 md:hidden">
               {individual.map((s) => (
-                <tr key={s.id}>
-                  <Td>
-                    <span className="font-semibold text-navy">{s.name}</span>
-                    <span className="block text-sm">{s.shortDescription}</span>
-                  </Td>
-                  <Td>{s.isRemote ? "Remote" : s.isBookableOnline ? "In-home" : "At your community"}</Td>
-                  <Td>{s.pricingType === "STARTING_AT" ? `About ${durationLabel(s.durationMinutes)}` : `Up to ${durationLabel(s.durationMinutes)}`}</Td>
-                  <Td className="text-right font-semibold whitespace-nowrap text-navy">{servicePriceLabel(s)}</Td>
-                </tr>
+                <li key={s.id} className="rounded-lg border border-line bg-white p-5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <h3 className="text-lg">{s.name}</h3>
+                    <p className="font-heading text-xl font-bold whitespace-nowrap text-green-dark">{servicePriceLabel(s)}</p>
+                  </div>
+                  <p className="mt-1">{s.shortDescription}</p>
+                  <p className="mt-2">
+                    {s.isRemote ? "Remote" : "In-home"} &middot; {s.pricingType === "STARTING_AT" ? `About ${durationLabel(s.durationMinutes)}` : `Up to ${durationLabel(s.durationMinutes)}`}
+                  </p>
+                </li>
               ))}
-            </tbody>
-          </Table>
+            </ul>
+            {/* Larger screens: table */}
+            <div className="hidden md:block">
+              <Table caption="Residential service prices">
+                <thead>
+                  <tr>
+                    <Th>Service</Th>
+                    <Th>Where</Th>
+                    <Th>Time included</Th>
+                    <Th className="text-right">Price</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {individual.map((s) => (
+                    <tr key={s.id}>
+                      <Td>
+                        <span className="font-semibold text-navy">{s.name}</span>
+                        <span className="block">{s.shortDescription}</span>
+                      </Td>
+                      <Td>{s.isRemote ? "Remote" : "In-home"}</Td>
+                      <Td>{s.pricingType === "STARTING_AT" ? `About ${durationLabel(s.durationMinutes)}` : `Up to ${durationLabel(s.durationMinutes)}`}</Td>
+                      <Td className="text-right text-lg font-semibold whitespace-nowrap text-navy">{servicePriceLabel(s)}</Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          </>
         )}
-        <p className="mt-4 text-sm">
+        <div className="mt-6 rounded-lg border-l-4 border-green bg-green-light p-5 text-navy-dark">
+          <h3 className="text-lg">You approve any additional cost first</h3>
+          <p className="mt-1">
+            Before we do any work beyond what you booked, such as extra time or an additional task, we explain what it involves and what it costs, and we only go ahead
+            with your approval.
+          </p>
+        </div>
+        <p className="mt-4">
           &quot;Starting at&quot; prices depend on the work involved, such as how much needs to be transferred to a new computer. We confirm the final price with you before
           we start.
         </p>
+        <div className="mt-6">
+          <ButtonLink href="/schedule" size="lg">
+            Schedule a Visit
+          </ButtonLink>
+        </div>
       </Section>
 
       {extensions.length > 0 && (
@@ -135,8 +168,8 @@ export default async function PricingPage() {
           </ul>
         )}
         <p className="mt-4 max-w-3xl">
-          Outside our regular area? <Link href="/contact">Contact us</Link> and we will let you know whether we can help and whether a travel fee would apply. Remote
-          support has no travel fee.
+          Outside our regular area? <Link href="/contact?topic=service-area">Contact Kindred</Link> and we will let you know whether we can help. Remote support has no
+          travel fee.
         </p>
       </Section>
 
@@ -144,30 +177,39 @@ export default async function PricingPage() {
         <p className="max-w-3xl text-lg">{cancellation.policyText}</p>
       </Section>
 
-      <Section id="communities" title="Pricing for senior living communities" tone="white">
-        <div className="max-w-3xl">
-          <p className="text-lg">
-            Tech Help Days and recurring facility contracts are priced individually based on hours on site, how often we visit, and whether residents or the community
-            pay.
-          </p>
-          {custom.length > 0 && (
-            <ul className="mt-4 list-disc space-y-1 pl-6">
-              {custom.map((s) => (
-                <li key={s.id}>
-                  {s.name}: {servicePriceLabel(s)}
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-5">
-            <Link href="/senior-living" className="font-semibold">
-              Learn about community partnerships and request a proposal
-            </Link>
-          </p>
+      <section id="communities" aria-labelledby="communities-title" className="scroll-mt-4 border-y border-line bg-white">
+        <div className="container-site py-12 md:py-16">
+          <div className="max-w-3xl rounded-lg border-2 border-navy p-6 md:p-8">
+            <p className="text-sm font-semibold uppercase tracking-wider text-green-dark">Separate from residential pricing</p>
+            <h2 id="communities-title" className="mt-1 text-2xl md:text-3xl">
+              Senior living community partnerships
+            </h2>
+            <p className="mt-3 text-lg">
+              Recurring resident technology support programs and community support sessions are custom quoted based on how often we visit, the length of each session,
+              and whether the community or residents pay. We will prepare a written proposal for your community.
+            </p>
+            {custom.length > 0 && (
+              <ul className="mt-4 list-disc space-y-1 pl-6">
+                {custom.map((s) => (
+                  <li key={s.id}>
+                    {s.name}: {servicePriceLabel(s)}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <ButtonLink href="/senior-living#inquiry" variant="secondary" size="lg">
+                Request a Partnership Proposal
+              </ButtonLink>
+              <ButtonLink href="/senior-living" variant="outline" size="lg">
+                Explore Community Partnerships
+              </ButtonLink>
+            </div>
+          </div>
         </div>
-      </Section>
+      </section>
 
-      <CtaBand title="Questions about pricing?" secondary={{ href: "/contact", label: "Contact Us" }}>
+      <CtaBand title="Questions about pricing?" secondary={{ href: "/contact", label: "Contact Kindred" }}>
         We are happy to explain what a visit might cost before you book. There is never any obligation.
       </CtaBand>
     </>

@@ -12,7 +12,7 @@ async function scan(page: import("@playwright/test").Page, path: string) {
 
 test("public pages have no automatically detectable WCAG A/AA violations", async ({ page }) => {
   const all: string[] = [];
-  for (const path of ["/", "/services", "/services/subscription-review-savings", "/senior-living", "/pricing", "/schedule", "/contact", "/faq", "/login", "/service-areas"]) {
+  for (const path of ["/", "/services", "/services/subscription-review-savings", "/services/technology-checkup", "/senior-living", "/pricing", "/schedule", "/contact", "/faq", "/login", "/service-areas", "/about"]) {
     all.push(...(await scan(page, path)));
   }
   expect(all).toEqual([]);

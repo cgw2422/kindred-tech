@@ -46,7 +46,9 @@ describe("structured data", () => {
     expect(ld).not.toHaveProperty("telephone");
     expect(ld).not.toHaveProperty("address");
     expect(ld).not.toHaveProperty("aggregateRating");
-    expect(ld.areaServed[0].name).toBe("Tuscarawas County, Ohio");
+    expect(ld.areaServed[0]).toMatchObject({ name: "Tuscarawas County, Ohio" });
+    // Partnership territory is a radius, not an office address.
+    expect(ld.areaServed.at(-1)).toMatchObject({ "@type": "GeoCircle", geoRadius: 120701 });
     expect(localBusinessJsonLd({ name: "K", phone: "330", email: "" }, [])).toHaveProperty("telephone", "330");
   });
   it("builds FAQ JSON-LD with at least 15 questions", () => {
@@ -69,7 +71,7 @@ describe("service pages", () => {
 });
 
 describe("form schemas", () => {
-  const base = { facilityName: "Oak Grove", contactName: "Pat", contactTitle: "", email: "pat@example.com", phone: "", city: "", residentCount: "", interest: "", message: "" };
+  const base = { facilityName: "Oak Grove", contactName: "Pat", contactTitle: "", email: "pat@example.com", phone: "", city: "Dover", state: "OH", communityType: "INDEPENDENT_LIVING", residentCount: "", visitFrequency: "", interest: "", message: "" };
   it("validates facility inquiries", () => {
     expect(facilityInquirySchema.safeParse(base).success).toBe(true);
     expect(facilityInquirySchema.safeParse({ ...base, email: "" }).success).toBe(false);

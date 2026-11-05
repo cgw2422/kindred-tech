@@ -1,3 +1,5 @@
+import { COMMUNITY_FAQS } from "@/lib/community";
+
 export type FaqGroup = { id: string; title: string; items: { question: string; answer: string }[] };
 
 export const FAQ_GROUPS: FaqGroup[] = [
@@ -23,7 +25,7 @@ export const FAQ_GROUPS: FaqGroup[] = [
       {
         question: "What areas do you serve?",
         answer:
-          "We currently serve Tuscarawas County, Ohio, including New Philadelphia, Dover, Uhrichsville, Dennison, Sugarcreek, Strasburg, Newcomerstown, and surrounding communities. We plan to expand to neighboring Ohio counties. Our service areas page lists communities and ZIP codes.",
+          "In-home visits are available throughout Tuscarawas County, Ohio, including New Philadelphia, Dover, Uhrichsville, Dennison, Sugarcreek, Strasburg, Newcomerstown, and surrounding communities. Community partnerships for senior living and 55+ communities are available across East-Central and Northeast Ohio, within about 75 miles of Gnadenhutten. Our service areas page has the details, and we are happy to confirm whether we can reach you.",
       },
       {
         question: "What should I have ready before my appointment?",
@@ -122,19 +124,8 @@ export const FAQ_GROUPS: FaqGroup[] = [
   },
   {
     id: "communities",
-    title: "Senior living communities",
-    items: [
-      {
-        question: "Do you work with senior living communities?",
-        answer:
-          "Yes. We offer resident referral partnerships, resident-paid or facility-sponsored Tech Help Days, and recurring on-site schedules. Visit our senior living page to learn more and send an inquiry.",
-      },
-      {
-        question: "Will community staff see residents' information?",
-        answer:
-          "Facility staff do not automatically see residents' private records. A community contact can help coordinate scheduling, but the details of a resident's session are shared only with that resident's permission.",
-      },
-    ],
+    title: "Community partnerships",
+    items: COMMUNITY_FAQS,
   },
 ];
 

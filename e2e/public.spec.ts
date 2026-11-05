@@ -23,7 +23,7 @@ test("home page communicates the core message and CTAs", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Technology Should Be Simple");
   await expect(page.getByRole("link", { name: "Schedule a Visit" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /Explore Our Services/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Explore Our Services/i }).first()).toBeVisible();
 });
 
 test("sitemap and robots are served", async ({ request }) => {

@@ -9,7 +9,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/faq",
   title: "Frequently Asked Questions",
   description:
-    "Answers about in-home technology help, pricing, family booking, privacy, remote support, and senior living partnerships from Kindred Tech Support in Tuscarawas County, Ohio.",
+    "Answers about in-home senior technology help, pricing, family booking, privacy, remote support, and senior living community partnerships from Kindred Tech Support in Ohio.",
 });
 
 export default function FaqPage() {
@@ -46,7 +46,7 @@ export default function FaqPage() {
         </div>
       </div>
 
-      <CtaBand title="Still have a question?" secondary={{ href: "/contact", label: "Contact Us" }}>
+      <CtaBand title="Still have a question?" secondary={{ href: "/contact", label: "Contact Kindred" }}>
         We are glad to talk it through before you book. There is no obligation.
       </CtaBand>
     </>

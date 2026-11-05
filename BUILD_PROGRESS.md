@@ -45,3 +45,21 @@ Run on 2026-11-05:
 ## Outstanding
 
 See "Partially implemented", "Not implemented", and "Known defects" in `FINAL_BUILD_REPORT.md`.
+
+## Website improvements (2026-11-05, second session)
+
+Customer experience and community-partnership improvements. No prices, services, routes, or booking workflows were changed or removed.
+
+- Homepage: two visitor paths ("Get Personal Tech Help" and "Partner With Kindred"), a new senior living section ("Make Technology Support a Resident Amenity."), seven trust standards, and an updated service-area summary. "How It Works" and "How We Can Help" are kept; the "Who we help" block was folded into the two paths so the page did not get longer.
+- Senior Living page: new headline and copy. The recurring monthly resident program is the primary offer, followed by a 5-step "How it works", benefits, an example 3-hour visit (capacity depends on resident needs), the other arrangements as secondary options, privacy, a ~75-mile partnership territory around Gnadenhutten, a 10-question community FAQ, and the proposal request form. Pricing stays custom quoted.
+- Proposal form: adds state, community type, and preferred visit frequency; groups fields; single column on phones. The submit button reads "Request a Community Partnership Proposal".
+- Services page: each of the 8 categories shows what is included, the appointment length, the price (from the database), and a consistent "Schedule a Visit" button. Tech Help Day services are listed in a new community section that links to the partnership page.
+- Pricing page: residential and community pricing are separated, the table becomes cards on phones, a notice explains that additional cost is always approved first, and community pricing links to the proposal form.
+- Service areas: the residential in-home area is unchanged (database-driven); a separate community partnership territory (East-Central and Northeast Ohio) was added.
+- FAQ: community partnership group (10 questions) on /faq and /senior-living.
+- Calls to action are consistent: "Schedule a Visit" (residential), "Request a Partnership Proposal" (communities), "Contact Kindred" (general).
+- SEO: updated titles and descriptions; Service structured data for the resident program with a GeoCircle service radius (no office addresses claimed).
+- Admin: community leads are separated from residential leads on the dashboard and in Messages & Leads, and the new inquiry fields are shown and carried over when an inquiry is converted to a facility. A new staff-notification email is queued for new leads when an admin notification address is set.
+- Accessibility: small buttons are now 44px tall, footer text uses the base size, and form fieldsets have legends. The axe scan covers 12 public pages.
+- Database: migration `facility_inquiry_details` adds three nullable columns to `FacilityInquiry`.
+- Tests: 217 unit and integration tests pass, 23 end-to-end and accessibility tests pass, and the production build passes.

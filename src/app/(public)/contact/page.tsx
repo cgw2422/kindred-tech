@@ -9,8 +9,8 @@ import { CONTACT_TOPICS } from "./schema";
 
 export const metadata: Metadata = pageMetadata({
   path: "/contact",
-  title: "Contact Us",
-  description: "Questions about technology help, pricing, or arranging a visit for a parent? Contact Kindred Tech Support in Tuscarawas County, Ohio.",
+  title: "Contact Kindred",
+  description: "Questions about senior technology help, pricing, arranging a visit for a parent, or a community partnership? Contact Kindred Tech Support in Ohio.",
 });
 
 type Props = { searchParams: Promise<{ topic?: string | string[] }> };
@@ -71,7 +71,7 @@ export default async function ContactPage({ searchParams }: Props) {
           <div className="mt-8 rounded-lg border border-line bg-white p-5">
             <h3 className="text-lg">Ready to book?</h3>
             <p className="mt-2">
-              You can <Link href="/schedule">schedule a visit online</Link>. Senior living communities can use our <Link href="/senior-living#inquiry">partnership inquiry form</Link>.
+              You can <Link href="/schedule">schedule a visit online</Link>. Senior living communities can <Link href="/senior-living#inquiry">request a partnership proposal</Link>.
             </p>
           </div>
           <div className="mt-6 rounded-lg border border-line bg-white p-5">

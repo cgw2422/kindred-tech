@@ -386,6 +386,15 @@ describe("facility billing and CRM", () => {
     expect((await prisma.facilityInquiry.findUniqueOrThrow({ where: { id: inq.id } })).status).toBe("CONVERTED");
   });
 
+  it("carries community type, state and preferred frequency from a proposal request into the facility", async () => {
+    const inq = await prisma.facilityInquiry.create({
+      data: { facilityName: "Maple Ridge", contactName: "Sam Ortiz", email: "sam@example.com", city: "Canton", state: "OH", communityType: "CCRC", visitFrequency: "MONTHLY" },
+    });
+    const { facility } = await convertInquiryToFacility(inq.id);
+    expect(facility).toMatchObject({ type: "CONTINUING_CARE", state: "OH", city: "Canton" });
+    expect(facility.internalNotes).toContain("Preferred visits: Monthly");
+  });
+
   it("invites a contact to the portal by creating a FACILITY_CONTACT user", async () => {
     const fac = await createFacility();
     const c = await prisma.facilityContact.create({ data: { facilityId: fac.id, name: "Invitee", email: "invitee@example.com" } });

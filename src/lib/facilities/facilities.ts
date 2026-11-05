@@ -3,6 +3,7 @@
  * session requests. Staff-only operations; callers must check
  * facilities:view / facilities:manage before calling.
  */
+import { communityTypeLabel, facilityTypeForCommunity, visitFrequencyLabel } from "../community";
 import { z } from "zod";
 import type { FacilityContactRole, PartnershipModel, PartnershipStatus, Prisma } from "@prisma/client";
 import { prisma } from "../db";
@@ -326,6 +327,8 @@ export async function convertInquiryToFacility(inquiryId: string, actorUserId?: 
     }
     const noteParts = [
       `Converted from website inquiry received ${inq.createdAt.toISOString().slice(0, 10)}.`,
+      inq.communityType ? `Community type: ${communityTypeLabel(inq.communityType) ?? inq.communityType}` : null,
+      inq.visitFrequency ? `Preferred visits: ${visitFrequencyLabel(inq.visitFrequency) ?? inq.visitFrequency}` : null,
       inq.interest ? `Interest: ${inq.interest}` : null,
       inq.message ? `Message: ${inq.message}` : null,
     ].filter(Boolean);
@@ -333,6 +336,8 @@ export async function convertInquiryToFacility(inquiryId: string, actorUserId?: 
       data: {
         name: inq.facilityName.trim(),
         city: inq.city?.trim() || null,
+        ...(inq.state ? { state: inq.state.trim().toUpperCase().slice(0, 2) } : {}),
+        ...(facilityTypeForCommunity(inq.communityType) ? { type: facilityTypeForCommunity(inq.communityType)! } : {}),
         residentCount: inq.residentCount ?? null,
         partnershipStatus: "CONTACTED",
         internalNotes: noteParts.join("\n"),

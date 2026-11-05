@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { env } from "@/lib/env";
+import { PARTNERSHIP_CENTER, PARTNERSHIP_CITIES, PARTNERSHIP_RADIUS_MILES } from "@/lib/community";
 
 /** Absolute URL for a public path. */
 export function absoluteUrl(path: string): string {
@@ -37,10 +38,36 @@ export function localBusinessJsonLd(biz: BusinessInfo, areas: { county: string; 
     url: env.appUrl,
     logo: `${env.appUrl}/icon-512.png`,
     image: `${env.appUrl}/icon-512.png`,
-    description: "In-home and remote technology help for seniors, families, and senior living communities.",
+    description:
+      "Patient in-home and remote technology help for seniors and families in Tuscarawas County, Ohio, and on-site resident technology support programs for senior living communities in East-Central and Northeast Ohio.",
     ...(biz.phone ? { telephone: biz.phone } : {}),
     ...(biz.email ? { email: biz.email } : {}),
-    areaServed,
+    areaServed: [...areaServed, partnershipGeoCircle()],
+  };
+}
+
+/** The community-partnership territory (about 75 miles around Gnadenhutten). Not an office location. */
+export function partnershipGeoCircle() {
+  return {
+    "@type": "GeoCircle",
+    geoMidpoint: { "@type": "GeoCoordinates", latitude: PARTNERSHIP_CENTER.lat, longitude: PARTNERSHIP_CENTER.lng },
+    geoRadius: Math.round(PARTNERSHIP_RADIUS_MILES * 1609.344),
+  };
+}
+
+/** Service schema for the senior living resident technology support program. */
+export function residentProgramJsonLd(providerName: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "Resident Technology Support Program for Senior Living Communities",
+    serviceType: "Senior living technology support",
+    description:
+      "Recurring, on-site technology assistance for residents of independent living, assisted living, retirement, continuing care, and 55+ communities. Custom-quoted community partnerships.",
+    url: absoluteUrl("/senior-living"),
+    audience: { "@type": "BusinessAudience", name: "Senior living and 55+ communities" },
+    provider: { "@type": "ProfessionalService", "@id": `${env.appUrl}/#business`, name: providerName, url: env.appUrl },
+    areaServed: [partnershipGeoCircle(), ...PARTNERSHIP_CITIES.map((c) => ({ "@type": "City", name: `${c}, Ohio` }))],
   };
 }
 

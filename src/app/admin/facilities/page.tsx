@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { communityTypeLabel, visitFrequencyLabel } from "@/lib/community";
 import type { Metadata } from "next";
 import { requirePermission } from "@/lib/auth/session";
 import { can } from "@/lib/auth/permissions";
@@ -227,10 +228,22 @@ export default async function FacilitiesPage({ searchParams }: { searchParams: P
                         <dd className="inline">{i.phone}</dd>
                       </div>
                     )}
-                    {i.city && (
+                    {(i.city || i.state) && (
                       <div>
-                        <dt className="inline font-semibold text-navy">City: </dt>
-                        <dd className="inline">{i.city}</dd>
+                        <dt className="inline font-semibold text-navy">Location: </dt>
+                        <dd className="inline">{[i.city, i.state].filter(Boolean).join(", ")}</dd>
+                      </div>
+                    )}
+                    {i.communityType && (
+                      <div>
+                        <dt className="inline font-semibold text-navy">Community type: </dt>
+                        <dd className="inline">{communityTypeLabel(i.communityType) ?? i.communityType}</dd>
+                      </div>
+                    )}
+                    {i.visitFrequency && (
+                      <div>
+                        <dt className="inline font-semibold text-navy">Preferred visits: </dt>
+                        <dd className="inline">{visitFrequencyLabel(i.visitFrequency) ?? i.visitFrequency}</dd>
                       </div>
                     )}
                     {i.residentCount != null && (

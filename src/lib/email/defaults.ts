@@ -322,6 +322,20 @@ If you did not request this, you can ignore this email.
     sampleVars: { ...sharedSample, areaNote: "Inside service area", adminUrl: "https://example.com/admin/appointments/sample" },
   },
   {
+    key: "admin_new_lead",
+    name: "Staff notification: new lead",
+    description: "Sent to the admin notification address when a community partnership inquiry or contact message arrives.",
+    category: "TRANSACTIONAL",
+    subject: "New {{leadType}}: {{leadName}}",
+    body: `A new {{leadType}} was submitted on the website.
+
+- **From:** {{leadName}}
+- **Details:** {{leadSummary}}
+
+[[button:Open in admin|{{adminUrl}}]]`,
+    sampleVars: { ...sharedSample, leadType: "community partnership inquiry", leadName: "Example Senior Living (Pat Example)", leadSummary: "Independent living community, Dover, OH, about 120 residents, monthly visits", adminUrl: "https://example.com/admin/facilities?tab=inquiries" },
+  },
+  {
     key: "newsletter_general",
     name: "General announcement (marketing)",
     description: "Example marketing template. Only sent to customers who opted in; includes an unsubscribe link.",
