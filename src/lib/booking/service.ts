@@ -1,5 +1,6 @@
 import { queueTemplatedEmail } from "../email/send";
 import { env } from "../env";
+import { getActiveMemberDiscount, getActiveMemberDiscountForCustomer } from "./member";
 import type { AppointmentStatus, Prisma, Role } from "@prisma/client";
 import { prisma, type Tx } from "../db";
 import { randomCode, randomToken, sha256 } from "../codes";
@@ -291,12 +292,18 @@ export async function createBooking(req: BookingRequest): Promise<BookingResult>
   }
 
   const travelFeeCents = service.isRemote ? 0 : (area?.travelFeeCents ?? billing.defaultTravelFeeCents);
+  const memberDiscountPercent = req.existingCustomerId
+    ? await getActiveMemberDiscountForCustomer(req.existingCustomerId)
+    : req.customer.email
+      ? await getActiveMemberDiscount(req.customer.email)
+      : 0;
   const estimate = estimatePrice({
     service,
     addons,
     extensionBlocks,
     travelFeeCents,
     discount,
+    memberDiscountPercent,
     taxRatePercent: billing.taxRatePercent,
   });
 
