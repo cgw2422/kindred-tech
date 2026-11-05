@@ -1,14 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAvailability, BookingError, findAppointmentByManageToken } from "@/lib/booking/service";
 import { getSettings } from "@/lib/settings";
-import { rateLimit } from "@/lib/rate-limit";
+import { ipFromHeaders, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 /** Public: available appointment start times. Does not reveal technician identities or other bookings. */
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
+  const ip = ipFromHeaders(req.headers);
   if (!(await rateLimit(`availability:${ip}`, 120, 60))) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   const serviceId = sp.get("serviceId") ?? "";
   const from = sp.get("from") ?? undefined;

@@ -59,7 +59,14 @@ export default async function ManagePage({ searchParams }: { searchParams: Promi
         </dl>
       </Card>
       <div className="mt-6">
-        {check.allowed ? (
+        {appt.status === "CANCELED" ? (
+          <div role="status" className="rounded-md border border-line bg-white p-4">
+            <p className="font-semibold text-navy">This appointment has been canceled.</p>
+            <p className="mt-1">
+              Whenever you are ready, you can <a href="/schedule">schedule a new visit</a>.
+            </p>
+          </div>
+        ) : check.allowed ? (
           <ManageControls token={token} serviceId={appt.serviceId} timeZone={biz.timeZone} allowReschedule={cancellation.allowOnlineReschedule} policy={cancellation.policyText} extensionBlocks={appt.extensionBlocks} />
         ) : (
           <Notice tone="navy">{check.reason}</Notice>

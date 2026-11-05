@@ -633,6 +633,7 @@ export async function changeAppointmentStatus(params: {
 export async function assignTechnician(params: { appointmentId: string; technicianId: string | null; actorUserId: string; allowOutsideHours?: boolean }) {
   const appt = await prisma.appointment.findUnique({ where: { id: params.appointmentId }, include: { service: true } });
   if (!appt) throw new BookingError("Appointment not found.", "NOT_FOUND");
+  if (appt.techHelpDayId) throw new BookingError("This is a Tech Help Day session. Cancel and rebook it from the Tech Help Day page.", "HELP_DAY");
   if (!ACTIVE_STATUSES.includes(appt.status)) throw new BookingError("Only active appointments can be assigned.", "INVALID");
   try {
     await prisma.$transaction(async (tx) => {
@@ -674,6 +675,7 @@ export async function rescheduleAppointment(params: {
 }) {
   const appt = await prisma.appointment.findUnique({ where: { id: params.appointmentId }, include: { service: true } });
   if (!appt) throw new BookingError("Appointment not found.", "NOT_FOUND");
+  if (appt.techHelpDayId) throw new BookingError("This is a Tech Help Day session. Cancel and rebook it from the Tech Help Day page.", "HELP_DAY");
   if (!["REQUESTED", "CONFIRMED", "ASSIGNED"].includes(appt.status)) throw new BookingError("This appointment can no longer be rescheduled.", "INVALID");
   const booking = await getSettings("booking");
   const isStaffActor = params.actor.role === "OWNER" || params.actor.role === "ADMIN" || params.actor.role === "DISPATCHER";

@@ -15,3 +15,25 @@ export async function rateLimit(key: string, limit: number, windowSeconds: numbe
   }
   return true;
 }
+
+/** Counts recent hits without recording a new one. */
+export async function rateLimitCount(key: string, windowSeconds: number): Promise<number> {
+  return prisma.rateLimitHit.count({ where: { key, createdAt: { gte: new Date(Date.now() - windowSeconds * 1000) } } });
+}
+
+export async function recordRateLimitHit(key: string) {
+  await prisma.rateLimitHit.create({ data: { key } });
+}
+
+/**
+ * Client IP from proxy headers. Uses the LAST X-Forwarded-For entry, which is
+ * appended by our hosting proxy; earlier entries can be supplied by the client.
+ */
+export function ipFromHeaders(h: { get(name: string): string | null }): string {
+  const xff = h.get("x-forwarded-for");
+  if (xff) {
+    const parts = xff.split(",").map((s) => s.trim()).filter(Boolean);
+    if (parts.length) return parts[parts.length - 1];
+  }
+  return h.get("x-real-ip") ?? "unknown";
+}

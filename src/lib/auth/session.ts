@@ -5,6 +5,7 @@ import type { Role, User } from "@prisma/client";
 import { prisma } from "../db";
 import { randomToken, sha256 } from "../codes";
 import { can, type Permission } from "./permissions";
+import { ipFromHeaders } from "../rate-limit";
 
 export const SESSION_COOKIE = "kts_session";
 const CUSTOMER_SESSION_DAYS = 14;
@@ -84,7 +85,8 @@ export async function assertPermission(permission: Permission): Promise<SessionU
 
 export async function clientIp(): Promise<string | null> {
   const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? null;
+  const ip = ipFromHeaders(h);
+  return ip === "unknown" ? null : ip;
 }
 
 /** Revokes every session for the user except the one making this request. */

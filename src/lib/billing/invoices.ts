@@ -42,6 +42,7 @@ export async function createInvoice(params: {
 }) {
   if (!params.customerId && !params.facilityId) throw new InvoiceError("An invoice needs a customer or a facility.");
   if (params.lines.length === 0) throw new InvoiceError("An invoice needs at least one line.");
+  if ((params.depositCents ?? 0) < 0) throw new InvoiceError("Deposit cannot be negative.");
   const run = async (tx: Tx) => {
     const billing = await getSettings("billing");
     if (params.billToContactId) {
@@ -63,6 +64,7 @@ export async function createInvoice(params: {
       };
     });
     const totals = computeInvoiceTotals(lines, billing.taxRatePercent);
+    if ((params.depositCents ?? 0) > totals.totalCents) throw new InvoiceError("Deposit cannot exceed the invoice total.");
     return tx.invoice.create({
       data: {
         number: await nextInvoiceNumber(tx),
@@ -209,6 +211,8 @@ export async function recordManualPayment(params: {
   return prisma.$transaction(async (tx) => {
     const inv = await tx.invoice.findUniqueOrThrow({ where: { id: params.invoiceId } });
     if (inv.status === "VOID" || inv.status === "DRAFT") throw new InvoiceError("Issue the invoice before recording a payment.");
+    const balance = inv.totalCents - (inv.amountPaidCents - inv.amountRefundedCents);
+    if (params.amountCents > balance) throw new InvoiceError(`Payment exceeds the balance due (${formatCents(Math.max(0, balance))}).`);
     const payment = await tx.payment.create({
       data: {
         invoiceId: inv.id,

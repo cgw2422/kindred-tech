@@ -6,7 +6,7 @@ import { prisma } from "../db";
 import { env } from "../env";
 import { randomToken, sha256 } from "../codes";
 import { audit } from "../audit";
-import { rateLimit } from "../rate-limit";
+import { rateLimit, rateLimitCount, recordRateLimitHit } from "../rate-limit";
 import { queueTemplatedEmail } from "../email/send";
 import { deliveryDecision } from "../email/provider";
 import { failure, fd, success, type ActionState } from "../forms";
@@ -29,7 +29,8 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
   if (!email || !password) return failure("Please enter your email and password.");
 
   const ip = (await clientIp()) ?? "unknown";
-  if (!(await rateLimit(`login:ip:${ip}`, 30, 15 * 60)) || !(await rateLimit(`login:email:${email}`, 10, 15 * 60))) {
+  // Per-IP limit counts all attempts; per-account limit counts only failures.
+  if (!(await rateLimit(`login:ip:${ip}`, 60, 15 * 60)) || (await rateLimitCount(`login:fail:${email}`, 15 * 60)) >= 10) {
     return failure("Too many sign-in attempts. Please wait 15 minutes and try again.");
   }
 
@@ -47,6 +48,7 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
       });
       await audit({ actorUserId: user.id, action: "auth.login_failed", entityType: "User", entityId: user.id, ip });
     }
+    await recordRateLimitHit(`login:fail:${email}`);
     return failure("That email and password combination did not match our records.");
   }
   await createSession(user.id, user.role);

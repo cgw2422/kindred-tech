@@ -54,7 +54,9 @@ export async function queueTemplatedEmail(params: {
     }
   }
 
-  const comm = await client.communication.create({
+  let comm;
+  try {
+    comm = await client.communication.create({
     data: {
       channel: "EMAIL",
       customerId: params.customerId ?? null,
@@ -68,6 +70,14 @@ export async function queueTemplatedEmail(params: {
       createdById: params.createdById ?? null,
     },
   });
+  } catch (err) {
+    // A concurrent caller queued the same message first: treat as already queued.
+    if ((err as { code?: string }).code === "P2002" && !params.tx) {
+      const dup = await prisma.communication.findUnique({ where: { idempotencyKey: params.idempotencyKey } });
+      if (dup) return { queued: false, communicationId: dup.id, reason: "Already queued (idempotent)." };
+    }
+    throw err;
+  }
   await enqueueJob(
     "email.send",
     { communicationId: comm.id, templateKey: params.templateKey, vars: params.vars },

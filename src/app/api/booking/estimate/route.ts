@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEstimate } from "@/lib/booking/public";
-import { rateLimit } from "@/lib/rate-limit";
+import { ipFromHeaders, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
+  const ip = ipFromHeaders(req.headers);
   if (!(await rateLimit(`estimate:${ip}`, 120, 60))) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   const result = await publicEstimate({
     serviceId: sp.get("serviceId") ?? "",
